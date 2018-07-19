@@ -34,7 +34,7 @@ convertLegacyHashUrls();
 const router = new VueRouter({
   mode: 'history',
   routes: [
-    { path: '/', component: AboutPage },
+    { path: '/', redirect: '/imageclassifier' },
     { path: '/about', component: AboutPage },
     { path: '/annotations', component: asyncPages.AnnotationsPage },
     {
@@ -63,6 +63,7 @@ const router = new VueRouter({
     { path: '/group/:groupIdOrSlug', name: 'group', component: asyncPages.ViewGroupPage },
     { path: '/project/:projectIdOrSlug', name: 'project', component: asyncPages.ViewProjectPage },
     { path: '/projects', component: asyncPages.ProjectsListPage },
+    { path: '/imageclassifier', component: async () => (await import(/* webpackPrefetch: true, webpackChunkName: "ImageClassifierPage" */ './modules/ImageClassifier')).ImageClassifierPage  },
   ]
 });
 

@@ -2,7 +2,7 @@ const express = require('express'),
       webpack = require('webpack'),
       favicon = require('serve-favicon'),
       Raven = require('raven'),
-      connectHistoryApiFallback = require('connect-history-api-fallback');
+  {configureImageClassifier} = require('./imageClassifier');
 
 const env = process.env.NODE_ENV || 'development';
 const conf = require('./conf.js');
@@ -57,13 +57,14 @@ const configureUploadHandler = (app) => {
   }
 };
 
-const startServer = () => {
+const startServer = async () => {
   const app = express();
 
   configureRavenRequestHandler(app);
 
   app.use(favicon(__dirname + '/static/favicon.ico'));
 
+  await configureImageClassifier(app);
   configureUploadHandler(app);
   // Keep configureAppServer as the last route handler, because connectHistoryApiFallback rewrites unhandled routes to serve index.html
   configureAppServer(app);
@@ -74,4 +75,7 @@ const startServer = () => {
   });
 };
 
-startServer();
+startServer().catch(err => {
+  console.error(err);
+  exit(1);
+});

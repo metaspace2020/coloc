@@ -29,11 +29,14 @@ function checkStatus(response: Response): Response {
   }
 }
 
-async function getJWT(): Promise<JWT> {
-  const url = '/api_auth/gettoken';
-  const response = await fetch(url, {credentials: 'include'});
-  checkStatus(response);
-  return await response.text();
+function getJWT(): Promise<JWT> {
+  if (config.graphqlUrl != null && config.graphqlUrl.startsWith('http://metaspace2020.eu')) {
+    // Anonymous token hard-coded for cross-domain auth
+    return Promise.resolve('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJNRVRBU1BBQ0UyMDIwIiwicm9sZSI6ImFub255bW91cyJ9.Hl0h6crcHLb-SPm7nomXkQco5l2iAO6D1bwdjmOaFXM');
+  } else {
+    return fetch("/getToken", { credentials: 'include' })
+      .then(checkStatus).then(resp => resp.text())
+  }
 }
 
 function decodePayload(jwt: JWT) {

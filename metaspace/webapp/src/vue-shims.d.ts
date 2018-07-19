@@ -5,9 +5,11 @@ declare module "*.vue" {
 
 declare module 'vue-analytics';
 declare module 'raven-js/plugins/vue';
+declare module 'vue-intersect';
 
 declare module "plotly.js/src/components/colorscale/scales.js"
 declare module "plotly.js/src/components/colorscale/extract_scale.js"
+declare module 'dom-confetti';
 
 declare module "vue-slide-up-down";
 

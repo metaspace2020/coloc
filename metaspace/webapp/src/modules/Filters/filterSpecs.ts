@@ -91,21 +91,23 @@ export const FILTER_SPECIFICATIONS: Record<FilterKey, FilterSpecification> = {
     type: SingleSelectFilter,
     name: 'Database',
     description: 'Select database',
-    levels: ['annotation'],
+    levels: ['annotation', 'imageclassifier'],
     defaultInLevels: ['annotation'],
     initialValue: lists => lists.molecularDatabases
                                 .filter(d => d.default)
                                 .map(d => d.name)[0],
     options: lists => lists.molecularDatabases.map(d => d.name),
-    removable: false
+    // removable: true // FIXME: If Off-Sample is kept, this must be false for the 'annotation' level
   },
 
   datasetIds: {
     type: SearchableFilter,
     name: 'Dataset',
     description: 'Select dataset',
-    levels: ['annotation', 'dataset'],
+    levels: ['annotation', 'dataset', 'imageclassifier'],
+    defaultInLevels: ['imageclassifier'],
     initialValue: undefined,
+    removable: false, // FIXME: If Off-Sample is kept, this must be false for the 'annotation' level
     multiple: true,
     encoding: 'list'
   },
@@ -153,7 +155,7 @@ export const FILTER_SPECIFICATIONS: Record<FilterKey, FilterSpecification> = {
     type: SingleSelectFilter,
     name: 'FDR',
     description: 'Select FDR level',
-    levels: ['annotation'],
+    levels: ['annotation', 'imageclassifier'],
     defaultInLevels: ['annotation'],
     initialValue: 0.1,
 
@@ -161,7 +163,6 @@ export const FILTER_SPECIFICATIONS: Record<FilterKey, FilterSpecification> = {
     optionFormatter: formatFDR,
     valueFormatter: formatFDR,
     filterable: false,
-    removable: false
   },
 
   group: {
@@ -184,7 +185,7 @@ export const FILTER_SPECIFICATIONS: Record<FilterKey, FilterSpecification> = {
     type: SearchableFilter,
     name: 'Submitter',
     description: 'Select submitter',
-    levels: ['annotation', 'dataset'],
+    levels: ['annotation', 'dataset', 'imageclassifier'],
     initialValue: undefined,
   },
 
@@ -192,7 +193,7 @@ export const FILTER_SPECIFICATIONS: Record<FilterKey, FilterSpecification> = {
     type: SingleSelectFilter,
     name: 'Polarity',
     description: 'Select polarity',
-    levels: ['annotation', 'dataset'],
+    levels: ['annotation', 'dataset', 'imageclassifier'],
     initialValue: undefined,
 
     // FIXME: this ideally should be taken straight from the JSON schema
@@ -288,7 +289,6 @@ export const FILTER_SPECIFICATIONS: Record<FilterKey, FilterSpecification> = {
     levels: ['annotation', 'dataset', 'projects'],
     defaultInLevels: ['annotation', 'dataset', 'projects'],
     initialValue: '',
-    removable: false,
     sortOrder: 2
   },
 
@@ -296,10 +296,9 @@ export const FILTER_SPECIFICATIONS: Record<FilterKey, FilterSpecification> = {
     type: SingleSelectFilter,
     name: 'Data type',
     description: 'Select data type',
-    levels: ['annotation', 'dataset', 'upload'],
-    defaultInLevels: ['annotation', 'dataset', 'upload'],
+    levels: ['annotation', 'dataset', 'upload', 'imageclassifier'],
+    defaultInLevels: ['annotation', 'dataset', 'upload', 'imageclassifier'],
     initialValue: defaultMetadataType,
-    removable: false,
     options: metadataTypes,
     hidden: () => metadataTypes.length <= 1
   }

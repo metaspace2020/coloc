@@ -1,5 +1,5 @@
 clientConfig.json
-db.sqlite
+*.sqlite
 
 # Dereferenced metadata files
 /src/assets/*.json

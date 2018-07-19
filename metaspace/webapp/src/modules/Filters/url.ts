@@ -34,6 +34,7 @@ const FILTER_TO_URL: Record<FilterKey, string> = {
 const URL_TO_FILTER = invert(FILTER_TO_URL) as Record<string, FilterKey>;
 
 const PATH_TO_LEVEL: Record<string, Level> = {
+  '/imageclassifier': 'imageclassifier',
   '/annotations': 'annotation',
   '/datasets': 'dataset',
   '/datasets/summary': 'dataset',
