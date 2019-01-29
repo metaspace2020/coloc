@@ -59,7 +59,7 @@ function formatFDR (fdr: number) {
    incorporate any extra fields that are needed to populate the options.
 */
 
-export type Level = 'annotation' | 'dataset' | 'upload' | 'projects';
+export type Level = 'annotation' | 'dataset' | 'upload' | 'projects' | 'imageclassifier';
 
 export type FilterKey = 'database' | 'datasetIds' | 'minMSM' | 'compoundName' | 'adduct' | 'mz' | 'fdrLevel'
   | 'group' | 'project' | 'submitter' | 'polarity' | 'organism' | 'organismPart' | 'condition' | 'growthConditions'

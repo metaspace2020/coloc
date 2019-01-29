@@ -10,7 +10,7 @@ type DataRow = [string, string, string, string, string, string];
 
 const process = async (item: AnnotationLabel) => {
   try {
-    await fetch(`${config.imageClassifierUrl}`, {
+    await fetch(`${config.manualSortUrl}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(item)

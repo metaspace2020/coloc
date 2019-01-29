@@ -1,7 +1,7 @@
 {
   "graphqlUrl": null,
   "wsGraphqlUrl": null,
-  "imageClassifierUrl": null,
+  "manualSortUrl": null,
 
   "google_client_id": "{{ sm_webapp_google_client_id }}",
 

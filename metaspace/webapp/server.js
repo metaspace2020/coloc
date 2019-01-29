@@ -1,8 +1,10 @@
+require('ts-node/register');
 const express = require('express'),
       webpack = require('webpack'),
       favicon = require('serve-favicon'),
       Raven = require('raven'),
-  {configureImageClassifier} = require('./imageClassifier');
+      connectHistoryApiFallback = require('connect-history-api-fallback'),
+      {configureImageClassifier} = require('./imageClassifier');
 
 const env = process.env.NODE_ENV || 'development';
 const conf = require('./conf.js');

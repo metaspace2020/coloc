@@ -48,14 +48,13 @@
 <script lang="ts">
   import Vue from 'vue';
   import { Component, Watch } from 'vue-property-decorator';
-  import FilterPanel from '../../../components/FilterPanel.vue';
   import ImageClassifierBlock from './ImageClassifierBlock.vue';
   import * as config from '../../../clientConfig.json';
-  import {confetti} from 'dom-confetti';
   import { chunk, cloneDeep, get, keyBy, mapValues, omit, pick, range } from 'lodash-es';
   import Prando from 'prando';
   import { AnnotationLabel, ICBlockAnnotation, ICBlockAnnotationsQuery } from './ICBlockAnnotation';
   import './importTool';
+  import {FilterPanel} from '../../Filters';
 
   const LABELS = ['un', 'on', 'off', 'ind'];
 
@@ -272,11 +271,10 @@
               while (el && el.parentElement && !el.classList.contains('annotation'))
                 el = el.parentElement;
 
-              confetti(el, {elementCount: 100});
             }
 
             try {
-              await fetch(`${config.imageClassifierUrl}`, {
+              await fetch(`${config.manualSortUrl}`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -306,7 +304,7 @@
         const query = qs({ datasetId, user });
         try {
           this.loading += 1;
-          const response = await fetch(`${config.imageClassifierUrl}${query}`);
+          const response = await fetch(`${config.manualSortUrl}${query}`);
           const labels = await response.json() as Record<string, number>;
           // Double-check nothing has changed while loading
           if (datasetId === this.datasetId && user === this.user) {
