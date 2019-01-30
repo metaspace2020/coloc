@@ -56,7 +56,8 @@
    'minMSM',
    'simpleQuery',
    'simpleFilter',
-   'metadataType'
+   'metadataType',
+   'intThreshold',
  ];
 
  const filterComponents = {};

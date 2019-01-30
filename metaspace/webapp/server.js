@@ -5,6 +5,7 @@ const express = require('express'),
       Raven = require('raven'),
       connectHistoryApiFallback = require('connect-history-api-fallback'),
       {configureImageClassifier} = require('./imageClassifier');
+const bodyParser = require('body-parser');
 
 const env = process.env.NODE_ENV || 'development';
 const conf = require('./conf.js');
@@ -31,6 +32,9 @@ const configureAppServer = (app) => {
       maxAge: '10m'
     }));
   }
+  app.use('/static', express.static('static', {
+    maxAge: '1s'
+  }));
 
   app.use(connectHistoryApiFallback({index: '/'})); // Rewrite unknown non-file paths to serve index.html
   app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
@@ -65,6 +69,7 @@ const startServer = async () => {
   configureRavenRequestHandler(app);
 
   app.use(favicon(__dirname + '/static/favicon.ico'));
+  app.use(bodyParser.json());
 
   await configureImageClassifier(app);
   configureUploadHandler(app);

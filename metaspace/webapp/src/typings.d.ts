@@ -21,6 +21,7 @@ declare module "*/clientConfig.json" {
     graphqlUrl: string | null
     wsGraphqlUrl: string | null
     manualSortUrl: string;
+    imageStorage?: string | null;
 
     google_client_id: string
 

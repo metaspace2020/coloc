@@ -11,7 +11,6 @@
              :style="imageStyle"
              @click="onClick"
              @wheel="onWheel"
-             @mousedown.left.prevent="onMouseDown"
              ref="visibleImage"
              class="isotope-image"/>
       </div>
@@ -679,5 +678,4 @@
    left: 30px;
    z-index: 4;
  }
-
 </style>

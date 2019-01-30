@@ -28,7 +28,9 @@ const FILTER_TO_URL: Record<FilterKey, string> = {
   analyzerType: 'instr',
   simpleQuery: 'q',
   simpleFilter: 'f',
-  metadataType: 'mdtype'
+  metadataType: 'mdtype',
+  user: 'user',
+  intThreshold: 'intthreshold'
 };
 
 const URL_TO_FILTER = invert(FILTER_TO_URL) as Record<string, FilterKey>;

@@ -63,7 +63,8 @@ export type Level = 'annotation' | 'dataset' | 'upload' | 'projects' | 'imagecla
 
 export type FilterKey = 'database' | 'datasetIds' | 'minMSM' | 'compoundName' | 'adduct' | 'mz' | 'fdrLevel'
   | 'group' | 'project' | 'submitter' | 'polarity' | 'organism' | 'organismPart' | 'condition' | 'growthConditions'
-  | 'ionisationSource' | 'maldiMatrix' | 'analyzerType' | 'simpleFilter' | 'simpleQuery' | 'metadataType';
+  | 'ionisationSource' | 'maldiMatrix' | 'analyzerType' | 'simpleFilter' | 'simpleQuery' | 'metadataType'
+  | 'user' | 'intThreshold';
 
 export type MetadataLists = Record<string, any[]>;
 
@@ -301,6 +302,24 @@ export const FILTER_SPECIFICATIONS: Record<FilterKey, FilterSpecification> = {
     initialValue: defaultMetadataType,
     options: metadataTypes,
     hidden: () => metadataTypes.length <= 1
+  },
+
+  user: {
+    type: SearchBox,
+    name: 'User',
+    removable: false,
+    levels: ['imageclassifier'],
+    defaultInLevels: ['imageclassifier'],
+    initialValue: '',
+  },
+
+  intThreshold: {
+    type: InputFilter,
+    name: 'Intensity Threshold',
+    description: 'Set Intensity Threshold',
+    levels: ['imageclassifier'],
+    defaultInLevels: ['imageclassifier'],
+    initialValue: 0.0,
   }
 };
 

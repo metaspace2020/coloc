@@ -1,7 +1,6 @@
 import gql from 'graphql-tag';
 
 export interface MzImage {
-  mz: number;
   url: string;
   totalIntensity: number;
   minIntensity: number;
@@ -14,46 +13,42 @@ export const ICBlockAnnotationsQuery = gql`query AllAnnotations($filter: Annotat
         id
         sumFormula
         adduct
-        msmScore
-        fdrLevel
-        mz
         dataset {
           id
           name
         }
         isotopeImages {
-          mz
           url
+          totalIntensity
           minIntensity
           maxIntensity
-          totalIntensity
         }
       }
   }`;
 
 export interface ICBlockAnnotation {
   id: string;
-  dataset: { id: string, name: string },
   sumFormula: string;
   adduct: string;
-  msmScore: number;
-  fdrLevel: number;
-  mz: number;
+  dataset: { id: string, name: string },
   isotopeImages: MzImage[];
 }
 
-export interface AnnotationLabel {
+export interface ColocItem {
+  otherAnnotationId: string;
+  otherSf: string;
+  otherAdduct: string;
+  otherIonImageUrl: string;
+}
+
+export interface ColocSet {
   datasetId: string;
   user: string;
-  annotationId: string;
-  type: number;
-
-  dsName?: string | null;
-  sumFormula?: string | null;
-  adduct?: string | null;
-  msmScore?: number | null;
-  fdrLevel?: number | null;
-  mz?: number | null;
-  ionImageUrl?: string | null;
-  source?: string | null;
+  baseAnnotationId: string;
+  baseSf: string;
+  baseAdduct: string;
+  baseIonImageUrl: string;
+  dsName: string;
+  otherAnnotations: ColocItem[];
+  source: string;
 }

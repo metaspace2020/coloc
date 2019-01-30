@@ -1,126 +1,99 @@
 <template>
-  <intersect @change="handleVisibilityChange" :threshold="[0,0]" rootMargin="2000px">
-    <div v-loading="loading">
-      <div v-for="(row, idx) in rows"
-           :key="idx"
-           class="row">
-        <div v-for="annotation in row"
-             v-if="isVisible && annotation != null"
-             :key="annotation.id"
-             :data-key="annotation.id"
-             :class="getAnnotationClass(annotation.id)"
-             @mouseenter="e => $emit('mouseenter', Object.assign(e, {annotation}))"
-             @mouseleave="e => $emit('mouseleave', Object.assign(e, {annotation}))"
-        >
-          <image-loader :src="annotation.isotopeImages[0].url"
-                        :colormap="colormap"
-                        :max-height="184"
-                        :annotImageOpacity="1"
-                        opticalSrc=""
-                        opticalImageUrl=""
-                        opacityMode="constant"
-                        :showOpticalImage="false"
-                        style="overflow: hidden;"
-            />
-          <div class="subtitle">
-            <div>{{annotation.sumFormula}}</div>
-            <div>{{ parseFloat(annotation.mz).toFixed(4) }}</div>
-          </div>
-        </div>
-        <div v-else />
-      </div>
-      <hr />
+  <div v-if="isPreloaded" class="block">
+    <div class="referenceImage">
+      <h4>Reference Image</h4>
+      <image-loader
+        :src="thisSet.baseIonImageUrl"
+        :colormap="$route.query.colormap || 'Viridis'"
+        :max-height="184"
+        :annotImageOpacity="1"
+        opticalSrc=""
+        opticalImageUrl=""
+        opacityMode="constant"
+        :showOpticalImage="false"
+        style="overflow: hidden;"
+      />
     </div>
-  </intersect>
+    <div>
+      <draggable
+        v-if="thisSet != null"
+        v-model="thisSet.otherAnnotations"
+        :options="{direction: 'horizontal', ghostClass: 'ghost', animation: 150}"
+        @start="cancelKeyboardSelection"
+        @end="cancelKeyboardSelection">
+        <transition-group class="list">
+          <div
+            v-for="(ann, idx) in thisSet.otherAnnotations"
+            :key="ann.otherAnnotationId"
+            :class="{'selected-item': idx === selectedIdx}"
+          >
+            <h4>{{idx + (base1 ? 1 : 0)}}</h4>
+            <image-loader
+              :src="ann.otherIonImageUrl"
+              :colormap="$route.query.colormap || 'Viridis'"
+              :max-height="184"
+              :annotImageOpacity="1"
+              opticalSrc=""
+              opticalImageUrl=""
+              opacityMode="constant"
+              :showOpticalImage="false"
+              style="overflow: hidden;"
+            />
+          </div>
+        </transition-group>
+      </draggable>
+    </div>
+  </div>
 </template>
 <script lang="ts">
   import Vue from 'vue';
-  import { Component, Prop } from 'vue-property-decorator';
-  import {chunk, debounce} from 'lodash-es';
+  import {Component, Prop, Watch} from 'vue-property-decorator';
   import Intersect from 'vue-intersect';
   import ImageLoader from '../../../components/ImageLoader.vue';
-  import { ICBlockAnnotation } from './ICBlockAnnotation';
-
-  type AnnotationLabel = undefined | 1 | 2 | 3 | 4; // none / on- / off- / ind / error
+  import {ColocSet} from './ICBlockAnnotation';
+  import draggable from 'vuedraggable';
 
   @Component({
     components: {
       Intersect,
       ImageLoader,
+      draggable,
     },
   })
   export default class ImageClassifierBlock extends Vue {
-    constructor() {
-      super();
-      this.handleVisibilityChange = debounce(this.handleVisibilityChange, 1000);
-    }
     @Prop({ default: 'Viridis' })
     colormap!: string;
     @Prop()
-    numCols!: number;
+    thisSet!: ColocSet;
+    @Prop({ default: true })
+    visible!: boolean;
+    @Prop({ default: false })
+    preload!: boolean;
     @Prop()
-    annotationLabels!: Record<string, AnnotationLabel>;
-    @Prop()
-    annotations!: ICBlockAnnotation[];
+    selectedIdx!: number;
+    @Prop({ default: false })
+    base1!: boolean;
 
-    loading = 0;
-    isVisible = false;
+    isPreloaded = false;
 
-    get rows(): (ICBlockAnnotation | null)[][] {
-      const rows = chunk(this.annotations, this.numCols) as (ICBlockAnnotation | null)[][];
-      // Pad rows so they're all the same width
-      rows.forEach(row => {
-        while (row.length < this.numCols) {
-          row.push(null);
-        }
-      });
-      return rows;
+    mounted() {
+      this.isPreloaded = this.preload;
     }
 
-    getAnnotationClass(id: string) {
-      const label = this.annotationLabels[id];
-      return {
-        'annotation': true,
-        'onsample': label === 1,
-        'offsample': label === 2,
-        'indeterminate': label === 3,
+    @Watch('preload')
+    @Watch('visible')
+    setIsPreloaded() {
+      if (this.preload || this.visible) {
+        this.isPreloaded = true;
       }
     }
 
-    handleVisibilityChange(intersection: IntersectionObserverEntry[]) {
-      this.isVisible = intersection[0].isIntersecting;
+    cancelKeyboardSelection() {
+      this.$emit('update:selectedIdx', null);
     }
   }
 </script>
 <style scoped lang="scss">
-  .row {
-    width: 100%;
-    height: 250px;
-    display: flex;
-  }
-  .annotation {
-    height: 234px;
-    max-width: 300px;
-    flex: 1 1 200px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    margin: 8px;
-
-    &.onsample {
-      background-color: #CCFFCC;
-    }
-    &.offsample {
-      background-color: #FFCCCC;
-    }
-    &.indeterminate {
-      background-color: #FFFFCC;
-    }
-    &.error {
-      background-color: #FF0000;
-    }
-  }
-
   .subtitle {
     display: flex;
     flex-direction: row;
@@ -133,5 +106,31 @@
       word-break: break-all;
       margin: 0 4px;
     }
+  }
+
+  .list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    > * {
+      display: flex;
+      flex-direction: column;
+      flex: 0 0 20%;
+      box-sizing: border-box;
+      padding: 5px;
+    }
+  }
+  .referenceImage {
+    width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /deep/ .ghost {
+    opacity: .5;
+    background: #C8EBFB;
+  }
+  .selected-item {
+    background: #C8EBFB;
   }
 </style>

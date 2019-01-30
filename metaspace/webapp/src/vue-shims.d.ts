@@ -6,6 +6,8 @@ declare module "*.vue" {
 declare module 'vue-analytics';
 declare module 'raven-js/plugins/vue';
 declare module 'vue-intersect';
+declare module 'vuedraggable';
+declare module 'simple-statistics';
 
 declare module "plotly.js/src/components/colorscale/scales.js"
 declare module "plotly.js/src/components/colorscale/extract_scale.js"

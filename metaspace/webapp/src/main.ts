@@ -32,7 +32,7 @@ import router from './router';
 import { sync } from 'vuex-router-sync';
 sync(store, router);
 router.afterEach((to) => {
-  store.commit('updateFilterOnNavigate', to);
+  store.commit('updateFilterOnNavigate', {query: to.query, path: to.path});
 });
 
 import App from './modules/App/App.vue';
