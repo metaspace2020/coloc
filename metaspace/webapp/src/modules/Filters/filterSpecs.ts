@@ -117,7 +117,7 @@ export const FILTER_SPECIFICATIONS: Record<FilterKey, FilterSpecification> = {
     type: InputFilter,
     name: 'Min. MSM',
     description: 'Set minimum MSM score',
-    levels: ['annotation'],
+    levels: ['annotation', 'imageclassifier'],
     initialValue: 0.0
   },
 

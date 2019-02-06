@@ -39,6 +39,9 @@ export interface ColocItem {
   otherSf: string;
   otherAdduct: string;
   otherIonImageUrl: string;
+  otherAvgInt: number;
+  otherOriginalIdx: number;
+  rank: number | null;
 }
 
 export interface ColocSet {
@@ -48,7 +51,11 @@ export interface ColocSet {
   baseSf: string;
   baseAdduct: string;
   baseIonImageUrl: string;
+  baseAvgInt: number;
   dsName: string;
+  intThreshold: number | null;
+  isIncomplete: boolean | null;
+  setIdx: number;
   otherAnnotations: ColocItem[];
   source: string;
 }

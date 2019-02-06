@@ -27,7 +27,7 @@
  // import ReleaseNotesDialog from './ReleaseNotesDialog.vue';
  import TourStep from './TourStep.vue';
  import {DialogController} from '../Account';
- import * as config from '../../clientConfig.json';
+ import * as config from '../../clientConfig-coloc.json';
 
  export default {
    name: 'app',
@@ -70,6 +70,7 @@
  html {
    font-family: 'Roboto', Helvetica, sans-serif;
    overflow-y: scroll; /* always show the right scrollbar to avoid flickering */
+   overflow-x: hidden;
  }
 
  /* http://matthewjamestaylor.com/blog/keeping-footers-at-the-bottom-of-the-page */

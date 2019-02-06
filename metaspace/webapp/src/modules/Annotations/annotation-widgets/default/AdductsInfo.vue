@@ -24,7 +24,7 @@
 <script>
 import { renderMolFormula } from '../../../../util';
 
-import ImageLoader from '../../../../components/ImageLoader.vue';
+import ImageLoader from '../../../../components/PlainImageLoader.vue';
 import { allAdductsQuery } from '../../../../api/annotation';
 
 export default {

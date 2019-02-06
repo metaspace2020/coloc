@@ -23,7 +23,8 @@ const configureKnex = async () => {
       table.integer('setIdx');
       table.string('baseAnnotationId');
       table.string('otherAnnotationId');
-      table.integer('order');
+      table.integer('rank');
+      table.boolean('isIncomplete');
       // Additional info
       table.string('dsName');
       table.float('intThreshold');
@@ -35,6 +36,7 @@ const configureKnex = async () => {
       table.string('otherAdduct');
       table.string('otherIonImageUrl');
       table.float('otherAvgInt');
+      table.integer('otherOriginalIdx');
       table.string('source');
       table.timestamp('created_at').defaultTo(knex.fn.now());
       table.timestamp('deleted_at');
@@ -60,7 +62,7 @@ const configureImageClassifier = async (app) => {
 
       let rows = await knex('manualsort')
         .whereNull('deleted_at')
-        .orderBy(['datasetId', 'user', 'baseAnnotationId', 'order']);
+        .orderBy(['datasetId', 'user', 'baseAnnotationId', 'rank']);
       var host = 'http://' + req.headers.host;
 
       rows = rows.map(r => {
@@ -89,13 +91,13 @@ const configureImageClassifier = async (app) => {
       }
       const results = await knex('manualsort').where({ datasetId, user })
                                               .whereNull('deleted_at')
-                                              .orderBy(['baseAnnotationId', 'order']);
+                                              .orderBy(['baseAnnotationId', 'rank']);
       const groupedResults = Object.values(_.groupBy(results, 'baseAnnotationId'));
       const structuredResults = groupedResults.map(grp => {
         return {
-          ..._.pickBy(grp[0], (v, k) => !k.startsWith('other') && !['order','id','created_at','deleted_at'].includes(k)),
+          ..._.pickBy(grp[0], (v, k) => !k.startsWith('other') && !['rank','id','created_at','deleted_at'].includes(k)),
           otherAnnotations: grp.map(item => {
-            return _.pickBy(item, (v, k) => k.startsWith('other'))
+            return _.pickBy(item, (v, k) => k.startsWith('other') || ['rank'].includes(k))
           })
         }
       });
@@ -115,7 +117,7 @@ const configureImageClassifier = async (app) => {
           .update({ deleted_at: knex.fn.now() });
         await trx('manualsort')
           .insert(otherAnnotations
-            .map((ann, order) => ({ ...ann, ...baseAnn, baseAnnotationId, datasetId, user, order })));
+            .map((ann) => ({ ...ann, ...baseAnn, baseAnnotationId, datasetId, user })));
       });
       res.send();
     } catch (err) {

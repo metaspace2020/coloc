@@ -1,7 +1,7 @@
 // import apolloClient from '../../../graphqlClient';
 // import gql from 'graphql-tag';
 // import { forEach, fromPairs, get, groupBy, map, pick } from 'lodash-es';
-// import * as config from '../../../clientConfig.json';
+// import * as config from '../../../clientConfig-coloc.json';
 // import { AnnotationLabel, ICBlockAnnotation, ICBlockAnnotationsQuery } from './ICBlockAnnotation';
 //
 // //              0   1       2      3        4          5

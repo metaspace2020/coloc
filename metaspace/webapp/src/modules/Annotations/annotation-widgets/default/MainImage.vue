@@ -60,7 +60,7 @@ import Vue from 'vue';
 import { Component, Prop } from 'vue-property-decorator';
 import { saveAs } from 'file-saver';
 import Colorbar from './Colorbar.vue';
-import ImageLoader from '../../../../components/ImageLoader.vue';
+import ImageLoader from '../../../../components/PlainImageLoader.vue';
 import domtoimage from 'dom-to-image-google-font-issue';
 
 @Component({

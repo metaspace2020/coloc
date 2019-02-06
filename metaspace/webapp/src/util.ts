@@ -1,4 +1,4 @@
-import * as config from './clientConfig.json';
+import * as config from './clientConfig-coloc.json';
 import * as Raven from 'raven-js';
 
 const fuConfig = config.fineUploader;

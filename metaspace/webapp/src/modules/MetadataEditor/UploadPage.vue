@@ -57,7 +57,7 @@
  import Vue from 'vue';
  import tokenAutorefresh from '../../tokenAutorefresh';
 
- import * as config from '../../clientConfig.json';
+ import * as config from '../../clientConfig-coloc.json';
  import {pathFromUUID} from '../../util';
  import {createDatasetQuery} from '../../api/dataset';
  import {getSystemHealthQuery, getSystemHealthSubscribeToMore} from '../../api/system';

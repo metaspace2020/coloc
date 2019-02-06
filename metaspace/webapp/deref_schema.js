@@ -2,7 +2,7 @@ const deref = require('json-schema-deref-sync');
 const {mergeWith} = require('lodash');
 const fs = require('fs');
 const path = require('path');
-const config = require('./src/clientConfig.json');
+const config = require('./src/clientConfig-coloc.json');
 
 
 const minSchemaPath = "../metadata/min metadata schema.json";

@@ -1,4 +1,4 @@
-declare module "*/clientConfig.json" {
+declare module "*/clientConfig-coloc.json" {
   interface AWSConfig {
     access_key_id: string
     region: string

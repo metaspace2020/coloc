@@ -6,16 +6,17 @@
        :element-loading-text="message">
 
     <div class="image-loader__container" ref="container" style="align-self: center">
-      <div style="text-align: left; position: relative;">
+      <div style="text-align: left; z-index: 2; position: relative;">
         <img :src="dataURI"
              :style="imageStyle"
              @click="onClick"
              @wheel="onWheel"
+             @mousedown.left.prevent="onMouseDown"
              ref="visibleImage"
              class="isotope-image"/>
       </div>
 
-      <div style="text-align: left; position: relative">
+      <div style="text-align: left; z-index: 1; position: relative">
         <img v-if="opticalSrc"
              :src="opticalImageUrl"
              class="optical-image"
@@ -23,19 +24,14 @@
       </div>
       <div :style="cssProps"
            :class="{pixelSizeX: pixelSizeIsActive}"
-           title="Click to change the color"
-           @click="onClickScaleBar()"
-           v-if="pixelSizeIsActive && showScaleBar && !scaleBarOxExceeds">
+           v-if="pixelSizeIsActive && !disableScaleBar && !scaleBarOxExceeds">
         <div :class="{pixelSizeXText: pixelSizeIsActive}">{{scaleBarValX}}</div>
       </div>
       <div :style="cssProps"
            :class="{pixelSizeY: pixelSizeIsActive}"
-           title="Click to change the color"
-           @click="onClickScaleBar()"
-           v-if="pixelSizeIsActive && showScaleBar && !scaleBarOyExceeds && this.pixelSizeX !== this.pixelSizeY">
+           v-if="pixelSizeIsActive && !disableScaleBar && !scaleBarOyExceeds && this.pixelSizeX !== this.pixelSizeY">
         <div :class="{pixelSizeYText: pixelSizeIsActive}">{{scaleBarValY}}</div>
       </div>
-      <palette v-show="paletteIsVisible" class="color-picker" @colorInput="val=>updateColor(val)" />
     </div>
 
     <div ref="mapOverlap"
@@ -55,8 +51,7 @@
  import createColormap from '../lib/createColormap';
  import {quantile} from 'simple-statistics';
  import resize from 'vue-resize-directive';
- import config from '../clientConfig.json';
- import Palette from './Palette.vue'
+ import config from '../clientConfig-coloc.json';
 
  const OPACITY_MAPPINGS = {
    'constant': (x) => 1,
@@ -120,9 +115,13 @@
        type: Number,
        default: 0
      },
-     showScaleBar: {
+     disableScaleBar: {
        type: Boolean,
-       default: true
+       default: false
+     },
+     scaleBarColor: {
+       type: String,
+       default: '#000000'
      }
    },
    data () {
@@ -150,14 +149,8 @@
        dragThrottled: false,
        overlayDefault: true,
        overlayFadingIn: false,
-       tmId: 0,
-       scaleBarColor: '#000000',
-       paletteIsVisible: false,
-       scaleBarShadow: '#FFFFFF'
+       tmId: 0
      }
-   },
-   components: {
-     'palette': Palette
    },
    created() {
      this.onResize = throttle(this.onResize, 100);
@@ -169,7 +162,6 @@
        this.loadImage(this.src);
      this.parentDivWidth = this.$refs.parent.clientWidth;
      window.addEventListener('resize', this.onResize);
-     this.$el.addEventListener('click', this.paletteClickHandler);
    },
    beforeDestroy() {
      window.removeEventListener('resize', this.onResize);
@@ -270,7 +262,6 @@
            '--scaleBar-color': this.scaleBarColor,
            '--scaleBarX-size': `${this.scaleBarAxisObj(this.pixelSizeX).scaleBarShownAxisVal}px`,
            '--scaleBarY-size': `${this.scaleBarAxisObj(this.pixelSizeY).scaleBarShownAxisVal}px`,
-           '--scaleBarShadow-color': this.scaleBarShadow,
            '--addedValToOyBar': this.scaleBarAxisObj(this.pixelSizeY).scaleBarShownAxisVal,
            '--scaleBarTextWidth': Math.max(document.documentElement.clientWidth, window.innerWidth || 0) > 3000 ?
              `${100}px` : `${this.scaleBarAxisObj(this.pixelSizeX).scaleBarShownAxisVal}`
@@ -313,24 +304,6 @@
          };
        }
        return {};
-     },
-
-     updateColor(val) {
-       this.scaleBarColor = val;
-       if(val === '#000000') {
-         this.scaleBarShadow = '#FFFFFF';
-       }
-       else if (val === '#FFFFFF') {
-         this.scaleBarShadow = '#000'
-       }
-       else if (val === '#999999') {
-         this.scaleBarShadow = '#000000'
-       }
-       this.paletteIsVisible = false;
-     },
-
-     onClickScaleBar() {
-       this.paletteIsVisible = true;
      },
 
      onResize: function() {
@@ -590,8 +563,6 @@
    align-content: center;
    justify-content: space-evenly;
    overflow: hidden;
-   cursor: -webkit-grab;
-   cursor: grab;
    width: 100%;
    line-height: 0;
  }
@@ -603,6 +574,7 @@
    text-align: center;
    top: 50%;
    transform: translateY(-50%);
+   z-index: 4;
    color: #fff;
    padding: auto;
  }
@@ -615,6 +587,7 @@
   position: absolute;
   opacity: 0;
   transition: 1.1s;
+  z-index: 3;
  }
 
  .image-loader__overlay--visible {
@@ -666,11 +639,6 @@
    z-index: 3;
  }
 
- .pixelSizeX:hover,
- .pixelSizeY:hover {
-   cursor: pointer;
- }
-
  .color-picker {
    display: block;
    position: absolute;
@@ -678,4 +646,9 @@
    left: 30px;
    z-index: 4;
  }
+
+ .el-form-item{
+   margin-bottom: 10px;
+ }
+
 </style>

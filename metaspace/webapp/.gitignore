@@ -1,4 +1,5 @@
 clientConfig.json
+clientConfig-coloc.json
 *.sqlite
 
 # Dereferenced metadata files
@@ -14,6 +15,7 @@ stats.json
 # Passwords and other sensitive data
 conf.js
 src/clientConfig.json
+src/clientConfig-coloc.json
 
 # Screenshots taken by testcafe
 tests/e2e/screenshots

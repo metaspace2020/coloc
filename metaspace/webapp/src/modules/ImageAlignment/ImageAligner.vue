@@ -59,7 +59,7 @@
 
 <script>
  import Vue from 'vue';
- import ImageLoader from '../../components/ImageLoader.vue';
+ import ImageLoader from '../../components/PlainImageLoader.vue';
  import {inv, dot, diag, getDiag} from 'numeric';
  import {scrollDistance} from '../../util';
 

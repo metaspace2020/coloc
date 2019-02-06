@@ -1,6 +1,6 @@
 import Vue from 'vue';
 
-import * as config from './clientConfig.json';
+import * as config from './clientConfig-coloc.json';
 import * as Raven from 'raven-js';
 import * as RavenVue from 'raven-js/plugins/vue';
 if(config.ravenDsn != null && config.ravenDsn !== '') {
