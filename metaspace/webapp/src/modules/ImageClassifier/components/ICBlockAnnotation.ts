@@ -9,7 +9,7 @@ export interface MzImage {
 
 export const ICBlockAnnotationsQuery = gql`query AllAnnotations($filter: AnnotationFilter, $datasetFilter: DatasetFilter) {
     allAnnotations(filter: $filter, datasetFilter: $datasetFilter,
-                   offset: 0, limit: 10000, orderBy: ORDER_BY_MZ, sortingOrder: ASCENDING) {
+                   offset: 0, limit: 100, orderBy: ORDER_BY_MZ, sortingOrder: ASCENDING) {
         id
         sumFormula
         adduct
@@ -30,6 +30,7 @@ export interface ICBlockAnnotation {
   id: string;
   sumFormula: string;
   adduct: string;
+  pixelFillRatio: number;
   dataset: { id: string, name: string },
   isotopeImages: MzImage[];
 }
@@ -39,23 +40,23 @@ export interface ColocItem {
   otherSf: string;
   otherAdduct: string;
   otherIonImageUrl: string;
-  otherAvgInt: number;
+  otherPixelFillRatio: number;
   otherOriginalIdx: number;
   rank: number | null;
 }
 
 export interface ColocSet {
   datasetId: string;
+  dsName: string;
+  isIncomplete: boolean | null;
+  setIdx: number;
+  source: string;
   user: string;
+  pixelFillRatioThreshold: number;
   baseAnnotationId: string;
   baseSf: string;
   baseAdduct: string;
   baseIonImageUrl: string;
-  baseAvgInt: number;
-  dsName: string;
-  intThreshold: number | null;
-  isIncomplete: boolean | null;
-  setIdx: number;
+  basePixelFillRatio: number;
   otherAnnotations: ColocItem[];
-  source: string;
 }

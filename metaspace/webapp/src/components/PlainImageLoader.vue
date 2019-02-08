@@ -253,9 +253,10 @@
        var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
        var pixels = imageData.data;
        var numPixels = pixels.length / 4;
+       const colors = this.colors.slice();
 
        for (let i = 0; i < numPixels; i++) {
-         let c = this.colors[g[i*4]];
+         let c = colors[g[i*4]];
          pixels[i*4] = c[0];
          pixels[i*4+1] = c[1];
          pixels[i*4+2] = c[2];

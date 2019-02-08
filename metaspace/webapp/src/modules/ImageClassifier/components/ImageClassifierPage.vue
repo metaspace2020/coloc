@@ -4,17 +4,19 @@
     class="container"
     v-loading="loading"
   >
-    <div class="floatingHeaderContainer" v-if="!loading && numPixels > 0">
+    <div class="floatingHeaderContainer" v-if="!loading">
       <div class="floatingHeader">
-        <div style="background-color: #CCFFCC; cursor: pointer;" @click="goBack()">&lsaquo; Save & Go Back</div>
-        <div v-if="currentSetIdx < setIds.length">
-          {{ currentSetIdx+1 }} out of {{ setIds.length }} (id: {{setIds[currentSetIdx]}}, mol: {{ currentSet && (currentSet.baseSf + currentSet.baseAdduct) }})
+        <div style="background-color: #FFCCCC; cursor: pointer;flex: 0 1 200px" @click="goBack()">&lsaquo; Save & Go Back</div>
+        <div v-if="currentSetIdx < filteredRouteSets.length" :title="currentSet && currentSet.id">
+          {{ currentSetIdx+1 }} out of {{ filteredRouteSets.length }}
+          <span style="white-space: nowrap">({{ currentSet && currentSet.datasetId }}:{{ routeSets[currentSetIdx].setIdx }},</span>
+          <span style="white-space: nowrap">{{ currentSet && (currentSet.baseSf + currentSet.baseAdduct) }})</span>
         </div>
         <div v-else>FINISHED</div>
-        <div v-if="currentSetIdx < setIds.length">
+        <div v-if="currentSetIdx < filteredRouteSets.length" style="flex: 0 1 120px">
           <el-checkbox v-model="currentSetIsIncomplete" label="Incomplete" />
         </div>
-        <div style="background-color: #FFCCCC; cursor: pointer;" @click="goForward()">Save & Continue &rsaquo;</div>
+        <div style="background-color: #CCFFCC; cursor: pointer;flex: 0 1 200px" @click="goForward()">Save & Continue &rsaquo;</div>
       </div>
     </div>
     <div class="header">
@@ -24,10 +26,10 @@
     </div>
     <div class="blockContainer">
       <image-classifier-block
-        v-if="!loading && numPixels > 0 && annotations.length >= setIds.length && annotations.length >= 12"
-        v-for="(setId, setIdx) in setIds"
-        :key="setId"
-        :thisSet="getSet(setIdx)"
+        v-if="!loading"
+        v-for="(cs, setIdx) in filteredColocSets"
+        :key="cs.baseAnnotationId"
+        :thisSet="cs"
         :visible="setIdx === currentSetIdx"
         :preload="Math.abs(setIdx - currentSetIdx) < 2"
         :selectedIdx.bind="selectedIdx"
@@ -55,11 +57,11 @@
           <li v-else><a href="#" @click.prevent="toggleFilterCompleted">Show completed sets</a>.</li>
         </ul>
       </image-classifier-block>
-      <div v-if="!loading && (annotations.length < setIds.length || annotations.length < 12)">
+      <div v-if="!loading && routeSets.length === 0">
         No dataset found, or not enough annotations matching filters
       </div>
-      <div v-if="!loading && currentSetIdx === setIds.length">
-        <div v-if="filterCompleted && setIds.length === 0">
+      <div v-if="!loading && currentSetIdx === filteredRouteSets.length">
+        <div v-if="filterCompleted && filteredRouteSets.length === 0">
           <li><a href="#" @click.prevent="toggleFilterCompleted">Show completed sets</a></li>
         </div>
         <div v-else>
@@ -74,7 +76,19 @@
   import { Component, Watch } from 'vue-property-decorator';
   import ImageClassifierBlock from './ImageClassifierBlock.vue';
   import * as config from '../../../clientConfig-coloc.json';
-  import {castArray, cloneDeep, debounce, flatMap, forEach, fromPairs, isEqual, keyBy, range} from 'lodash-es';
+  import {
+    castArray,
+    cloneDeep,
+    debounce,
+    filter,
+    flatMap,
+    forEach,
+    fromPairs, groupBy,
+    isEqual,
+    keyBy,
+    range,
+    uniq, zip,
+  } from 'lodash-es';
   import {quantile} from 'simple-statistics';
   import Prando from 'prando';
   import { ColocSet, ICBlockAnnotation, ICBlockAnnotationsQuery } from './ICBlockAnnotation';
@@ -82,9 +96,15 @@
   import {FilterPanel} from '../../Filters';
   import draggable from 'vuedraggable';
   import ImageLoader from '../../../components/PlainImageLoader.vue';
+  import {flatten} from 'fast-glob/out/utils/array';
 
+  interface RouteSet {
+    datasetId: string;
+    setIdx: number;
+    globalIdx: number;
+  }
 
-  const qs = (obj: Object) => '?' + Object.entries(obj)
+  const qs = (obj: object) => '?' + Object.entries(obj)
     .map(([key, val]) => `${encodeURIComponent(key)}=${encodeURIComponent(val)}`)
     .join('&');
 
@@ -95,50 +115,32 @@
       FilterPanel,
       draggable
     },
-    apollo: {
-      allAnnotations: {
-        query: ICBlockAnnotationsQuery,
-        variables(this) {
-          return this.gqlFilter;
-        },
-        loadingKey: 'loading',
-        skip(this) {
-          if (!this.datasetId || !this.user) {
-            this.allAnnotations = [];
-            return true;
-          }
-          return false;
-        }
-      },
-    },
   })
   export default class ImageClassifierPage extends Vue {
     loading = 0;
+    dsAnnotations: Record<string, ICBlockAnnotation[]> = {};
     allAnnotations: ICBlockAnnotation[] = [];
     serverSets: Record<string, ColocSet | null> = {};
     clientSets: Record<string, ColocSet | null> = {};
     selectedIdx: number | null = null;
-    numPixels = 0;
     base1 = true;
-    dirty = false;
     filterCompleted = false;
-    lastCompletedSetIds: number[] = [];
+    lastCompletedAnnotationIds: string[] = [];
 
     created() {
-      const ignoredPromise = this.loadSets();
-      this.updateFilters();
+      let ignoredPromise = this.loadSets();
       // Debounce because HMR often causes many copies of the same listener
-      this.handleKeyPress = debounce(this.handleKeyPress, 10);
-      this.handleKeyDown = debounce(this.handleKeyDown, 10);
+      // this.handleKeyPress = debounce(this.handleKeyPress, 10);
+      // this.handleKeyDown = debounce(this.handleKeyDown, 10);
     }
-    mounted() {
-      document.addEventListener('keypress', this.handleKeyPress, true);
-      document.addEventListener('keydown', this.handleKeyDown, true);
-    }
-    beforeDestroy() {
-      document.removeEventListener('keypress', this.handleKeyPress);
-      document.removeEventListener('keydown', this.handleKeyDown);
-    }
+    // mounted() {
+    //   document.addEventListener('keypress', this.handleKeyPress, true);
+    //   document.addEventListener('keydown', this.handleKeyDown, true);
+    // }
+    // beforeDestroy() {
+    //   document.removeEventListener('keypress', this.handleKeyPress);
+    //   document.removeEventListener('keydown', this.handleKeyDown);
+    // }
 
     get currentSetIdx() {
       return parseInt(this.$route.query.idx) | 0;
@@ -151,84 +153,71 @@
         }
       })
     }
-    get gqlFilter () {
+    filter: any = {};
+    query: any = {};
+    data() {
       return {
-        filter: this.$store.getters.gqlAnnotationFilter,
-        datasetFilter: this.$store.getters.gqlDatasetFilter,
-      };
+        filter: cloneDeep(this.$store.getters.filter),
+        query: cloneDeep(this.$route.query),
+      }
     }
-    get storeFilters() {
-      return this.$store.getters.filter;
-    }
-
-    filters: any = {};
-    @Watch('storeFilters')
-    updateFilters() {
-      // Vue should be doing a better job on watches. Every route change is causing every computed that
-      // accesses a filter to recompute, which is slooooow. This even happens when the filter
-      // is wrapped in its own computed.
-      if (!isEqual(this.$store.getters.filter, this.filters)) {
-        console.log('updating filters');
-        forEach(this.$store.getters.filter, (v, k) => {
-          Vue.set(this.filters, k, v);
+    @Watch('this.$store.getters.filter')
+    @Watch('this.$route.query')
+    lazyUpdate() {
+      ([['filter', this.$store.getters.filter], ['query', this.$route.query]] as any).forEach(([prop, src]: any) => {
+        const dest = (this as any)[prop] as any;
+        Object.entries(src).forEach(([k,v]: any) => {
+          if (dest[k] !== v) {
+            dest[k] = v as any;
+          }
         });
-      } else {
-        console.log('not updating filters')
-      }
+        Object.keys(dest as any).forEach((k: any) => {
+          if (!(k in src)) {
+            delete dest[k];
+          }
+        });
+      })
     }
-    get datasetId(): string | null { return castArray(this.filters.datasetIds)[0]; }
-    get user(): string | null { return this.filters.user; }
-    get intThreshold() { return parseFloat(this.filters.intThreshold) || 0; }
-    get showfilters(): boolean {
-      return !!this.$route.query.showfilters;
+
+    get filters() {
+      return this.$store.getters.gqlAnnotationFilter;
     }
-    get annotations(): ICBlockAnnotation[] {
-      if (this.intThreshold !== 0 && this.numPixels === 0) {
-        return [];
-      } else if (this.allAnnotations == null) {
-        return [];
-      } else {
-        // Randomize
-        const rng = new Prando(this.datasetId || 'seed');
-        let result: ICBlockAnnotation[] = [];
-        const annotations = this.allAnnotations.slice();
-        while (annotations.length > 0) {
-          result.push(annotations.splice(rng.nextInt(0, annotations.length - 1), 1)[0])
-        }
 
-        // Filter
-        if (this.intThreshold !== 0) {
-          const ints = this.allAnnotations.map(this.getAnnotationAvgInt);
-          console.log('Image average intensity deciles:', fromPairs(range(0, 11).map(q => [q / 10, quantile(ints, q / 10)])));
-
-          result = result.filter((ann, idx) => ints[idx] > this.intThreshold);
-        }
-
-        return result;
-      }
-    }
-    get unfilteredsetIds(): number[] {
-      if (this.$route.query.sets) {
-        return flatMap(this.$route.query.sets.split(','), setId => {
-          if (setId.includes('-')) {
-            const [lo, hi] = setId.split('-');
+    get user(): string | null { return this.filter.user; }
+    get pix() { return parseFloat(this.query.pix) || 0; }
+    get showfilters(): boolean { return !!this.query.showfilters; }
+    get querySets(): string { return this.query.sets || ''; }
+    get querySets2(): string { console.log(this.querySets); return this.querySets; }
+    get routeSets(): RouteSet[] {
+      const param = this.querySets2.split(';') as string[];
+      const routeSets = flatMap(param, set => {
+        const [datasetId, setIdxs] = set.split(':');
+        const allIdxs = flatMap<string, number>(setIdxs.split(','), idxs => {
+          if (idxs.includes('-')) {
+            const [lo, hi] = idxs.split('-');
             return range(parseInt(lo, 10) | 0, (parseInt(hi, 10) | 0) + 1);
           } else {
-            return [parseInt(setId, 10) | 0];
+            return [parseInt(idxs, 10) | 0];
           }
-        })
-      } else {
-        return range(10);
-      }
+        });
+        return allIdxs.map(setIdx => ({ datasetId, setIdx }));
+      });
+      const b = Object.values(groupBy(routeSets, 'datasetId'));
+      console.log({b, zip: zip(...b)})
+      const c = filter(flatten(flatten(zip(...b)) as any));
+      // Interleave datasets
+      return c.map((set, globalIdx) => ({ ...set, globalIdx })) as any as RouteSet[];
     }
-    get setIds(): number[] {
-      if (this.filterCompleted) {
-        return this.unfilteredsetIds
-          .filter(id => id < this.annotations.length)
-          .filter(id => !this.lastCompletedSetIds.includes(id));
-      } else {
-        return this.unfilteredsetIds.filter(id => id < this.annotations.length);
-      }
+    get filteredRouteSets(): RouteSet[] {
+      return this.routeSets
+        .filter(({datasetId, setIdx}) => {
+          const ds = this.dsAnnotations[datasetId];
+          const ann = ds && ds[setIdx];
+          return ann != null && (!this.filterCompleted || !this.lastCompletedAnnotationIds.includes(ann.id));
+        });
+    }
+    get filteredColocSets(): ColocSet[] {
+      return this.filteredRouteSets.map(rs => this.getSetById(rs)!);
     }
     get currentSet() {
       return this.getSet(this.currentSetIdx);
@@ -246,17 +235,17 @@
       }
     }
     getSet(setIdx: number) {
-      return this.getSetById(this.setIds[setIdx], setIdx);
+      return this.getSetById(this.filteredRouteSets[setIdx]);
     }
-    getSetById(setId: number, setIdx: number): ColocSet | null {
-      const annotation = this.annotations[setId];
+    getSetById(routeSet: RouteSet): ColocSet | null {
+      const annotation = this.dsAnnotations[routeSet.datasetId][routeSet.setIdx];
       if (annotation != null) {
         const annotationId = annotation.id;
         if (this.clientSets[annotationId] == null) {
           if (this.serverSets[annotationId] != null) {
             Vue.set(this.clientSets, annotationId, cloneDeep(this.serverSets[annotationId]));
           } else {
-            Vue.set(this.clientSets, annotationId, this.makeSet(annotation, setIdx));
+            Vue.set(this.clientSets, annotationId, this.makeSet(annotation, routeSet.setIdx));
           }
         }
         return this.clientSets[annotationId];
@@ -271,47 +260,43 @@
         : !set.otherAnnotations.every(a => a.rank != null);
     }
 
-    getAnnotationAvgInt(ann: ICBlockAnnotation) {
-      const iso = ann.isotopeImages[0];
-      return iso.totalIntensity / iso.maxIntensity / this.numPixels;
-    }
-
-    handleKeyDown(event: KeyboardEvent) {
-      if ((event.target as HTMLElement).closest('input') == null) {
-        if (event.key === 'ArrowLeft') {
-          this.goBack();
-          event.preventDefault();
-        } else if (event.key === 'ArrowRight') {
-          this.goForward();
-          event.preventDefault();
-        }
-      }
-    }
-
-    handleKeyPress(event: KeyboardEvent) {
-      if ((event.target as HTMLElement).closest('input') == null) {
-        const idx = (this.base1 ? '1234567890' : '0123456789').indexOf(event.key);
-        if (idx !== -1) {
-          if (this.selectedIdx == null) {
-            this.selectedIdx = idx;
-            event.preventDefault();
-          } else if (this.currentSet != null && this.currentSet.otherAnnotations.length === 10) {
-            console.log('swapping', this.selectedIdx, idx, this.currentSet);
-            const ann = this.currentSet.otherAnnotations.splice(this.selectedIdx, 1)[0];
-            this.currentSet.otherAnnotations.splice(idx, 0, ann);
-            this.selectedIdx = null;
-            event.preventDefault();
-          }
-        }
-      }
-    }
+    // handleKeyDown(event: KeyboardEvent) {
+    //   if ((event.target as HTMLElement).closest('input') == null) {
+    //     if (event.key === 'ArrowLeft') {
+    //       this.goBack();
+    //       event.preventDefault();
+    //     } else if (event.key === 'ArrowRight') {
+    //       this.goForward();
+    //       event.preventDefault();
+    //     }
+    //   }
+    // }
+    //
+    // handleKeyPress(event: KeyboardEvent) {
+    //   if ((event.target as HTMLElement).closest('input') == null) {
+    //     const idx = (this.base1 ? '1234567890' : '0123456789').indexOf(event.key);
+    //     if (idx !== -1) {
+    //       if (this.selectedIdx == null) {
+    //         this.selectedIdx = idx;
+    //         event.preventDefault();
+    //       } else if (this.currentSet != null && this.currentSet.otherAnnotations.length === 10) {
+    //         console.log('swapping', this.selectedIdx, idx, this.currentSet);
+    //         const ann = this.currentSet.otherAnnotations.splice(this.selectedIdx, 1)[0];
+    //         this.currentSet.otherAnnotations.splice(idx, 0, ann);
+    //         this.selectedIdx = null;
+    //         event.preventDefault();
+    //       }
+    //     }
+    //   }
+    // }
 
     toggleFilterCompleted() {
       const ignoredPromise = this.save();
       if (!this.filterCompleted) {
-        this.lastCompletedSetIds = this.unfilteredsetIds
-          .filter(id => id < this.annotations.length)
-          .filter((id, idx) => !this.isSetIncomplete(this.getSetById(id, idx)!));
+        this.lastCompletedAnnotationIds = this.routeSets
+          .map((rs) => this.getSetById(rs))
+          .filter(set => set != null && !this.isSetIncomplete(set))
+          .map(set => set!.baseAnnotationId);
       }
       this.filterCompleted = !this.filterCompleted;
       this.currentSetIdx = 0;
@@ -327,7 +312,7 @@
 
     goForward() {
       const ignoredPromise = this.save();
-      if (this.currentSetIdx < this.setIds.length) {
+      if (this.currentSetIdx < this.filteredRouteSets.length) {
         this.currentSetIdx++;
       }
       this.selectedIdx = null;
@@ -335,7 +320,7 @@
 
     async save() {
       const setIdx = this.currentSetIdx;
-      if (setIdx === this.setIds.length) return;
+      if (setIdx === this.filteredRouteSets.length) return;
       const currentSet = this.currentSet!;
       const annotationId = currentSet.baseAnnotationId;
 
@@ -361,54 +346,28 @@
       }
     }
 
-    @Watch('allAnnotations')
-    async countPixels() {
-      if (this.allAnnotations.length > 0) {
-        try {
-          this.loading++;
-          const img = new Image();
-          let checkerId;
-          await new Promise((resolve, reject) => {
-            const url = (config.imageStorage || '') + this.allAnnotations[0].isotopeImages[0].url;
-            console.log('getting', url);
-            img.onload = resolve;
-            img.onerror = reject;
-            img.crossOrigin = "Anonymous";
-            img.src = url;
-
-            let i = 0;
-            checkerId = setInterval(() => {
-              if (img.naturalHeight > 0 && img.naturalWidth > 0) {
-                resolve();
-              } else if (i++ > 1000) {
-                reject();
-              }
-            }, 10);
-          });
-          console.log('got it')
-          this.numPixels = img.naturalHeight * img.naturalWidth;
-        } catch (err) {
-          console.error(err);
-          const ignoredPromise = this.$alert('Could not load ion image, please refresh the page and try again');
-        } finally {
-          this.loading--;
-        }
-      }
-    }
-
-    @Watch('datasetId')
+    @Watch('routeSets')
     @Watch('user')
     async loadSets() {
-      const datasetId = this.datasetId;
+      const datasetIds = uniq(this.routeSets.map(rs => rs.datasetId));
+      console.log(this.routeSets)
       const user = this.user;
 
-      if (datasetId && user) {
-        const query = qs({ datasetId, user });
+      if (datasetIds.length > 0 && user) {
         try {
           this.loading += 1;
-          const response = await fetch(`${config.manualSortUrl}${query}`);
-          const sets = await response.json() as ColocSet[];
-          this.serverSets = keyBy(sets, 'baseAnnotationId');
+          const setsPromise = Promise.all(datasetIds.map(async datasetId => {
+            const query = qs({ datasetId, user });
+            const response = await fetch(`${config.manualSortUrl}${query}`);
+            return await response.json() as ColocSet[];
+          }));
+          const annotationsQuery = qs({datasetIds, filter: JSON.stringify(this.filters), pix: this.pix });
+          const annotationsPromise = await fetch(`${config.manualSortUrl}/annotations${annotationsQuery}`);
+          const [sets, annotationsResponse] = await Promise.all([setsPromise, annotationsPromise]);
+          const annotations = await annotationsResponse.json();
+          this.serverSets = keyBy(flatten(sets), 'baseAnnotationId');
+          this.dsAnnotations = annotations;
+          this.allAnnotations = flatMap(annotations, 'annotations');
           this.loading -= 1;
         } catch (err) {
           console.log(err);
@@ -420,9 +379,9 @@
 
     makeSet(baseAnnotation: ICBlockAnnotation, setIdx: number): ColocSet | null {
       const rng = new Prando(baseAnnotation.id);
-      const anns = this.annotations;
+      const anns = this.dsAnnotations[baseAnnotation.dataset.id];
 
-      if (this.datasetId == null || this.user == null || anns.length < 12) return null;
+      if (this.user == null || anns.length < 12) return null;
       const otherAnnotations: ICBlockAnnotation[] = [];
       let i = 0;
       while (otherAnnotations.length < 10 && i++ < 1000) {
@@ -433,25 +392,25 @@
       }
 
       return {
-        datasetId: this.datasetId,
+        datasetId: baseAnnotation.dataset.id,
         user: this.user,
         source: 'webui',
-        dsName: this.allAnnotations![0].dataset.name,
-        intThreshold: this.intThreshold,
+        dsName: baseAnnotation.dataset.name,
+        pixelFillRatioThreshold: this.pix,
         isIncomplete: null,
         setIdx,
         baseAnnotationId: baseAnnotation.id,
         baseSf: baseAnnotation.sumFormula,
         baseAdduct: baseAnnotation.adduct,
         baseIonImageUrl: baseAnnotation.isotopeImages[0].url,
-        baseAvgInt: this.getAnnotationAvgInt(baseAnnotation),
+        basePixelFillRatio: baseAnnotation.pixelFillRatio,
         otherAnnotations: otherAnnotations.map((ann, otherOriginalIdx) => {
           return {
             otherAnnotationId: ann.id,
             otherSf: ann.sumFormula,
             otherAdduct: ann.adduct,
             otherIonImageUrl: ann.isotopeImages[0].url,
-            otherAvgInt: this.getAnnotationAvgInt(ann),
+            otherPixelFillRatio: ann.pixelFillRatio,
             otherOriginalIdx,
             rank: null,
           };

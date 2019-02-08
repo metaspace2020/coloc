@@ -9,7 +9,7 @@ import { onError } from 'apollo-link-error';
 import * as config from './clientConfig-coloc.json';
 import tokenAutorefresh from './tokenAutorefresh';
 import reportError from './lib/reportError';
-import {get} from 'lodash-es';
+import get from 'lodash/get';
 
 const graphqlUrl = config.graphqlUrl || `${window.location.origin}/graphql`;
 const wsGraphqlUrl = config.wsGraphqlUrl || `${window.location.origin.replace(/^http/, 'ws')}/ws`;
@@ -66,56 +66,61 @@ const errorLink = onError(({ graphQLErrors, networkError, forward, operation }) 
 const httpLink = new BatchHttpLink({
   uri: graphqlUrl,
   batchInterval: 10,
+  fetch: (global as any).fetch || require('node-fetch').default,
 });
+let link: any;
+if ((global as any).fetch != null) {
+  const wsClient = new SubscriptionClient(wsGraphqlUrl, {
+    reconnect: true,
+    async connectionParams() {
+      // WORKAROUND: This is not the right place for this, but it's the only callback that gets called after a reconnect
+      // and can run an async operation before any messages are sent.
+      // All subscription operations need to have their JWTs updated before they are reconnected, so do that before
+      // supplying the connection params.
+      const operations = Object.values(wsClient.operations || {}).map(op => op.options);
+      const queuedMessages: any[] = wsClient['unsentMessagesQueue'].map((m: any) => m.payload);
+      const payloads = [...operations, ...queuedMessages];
 
-const wsClient = new SubscriptionClient(wsGraphqlUrl, {
-  reconnect: true,
-  async connectionParams() {
-    // WORKAROUND: This is not the right place for this, but it's the only callback that gets called after a reconnect
-    // and can run an async operation before any messages are sent.
-    // All subscription operations need to have their JWTs updated before they are reconnected, so do that before
-    // supplying the connection params.
-    const operations = Object.values(wsClient.operations || {}).map(op => op.options);
-    const queuedMessages: any[] = wsClient['unsentMessagesQueue'].map((m: any) => m.payload);
-    const payloads = [...operations, ...queuedMessages];
+      if (payloads.length > 0) {
+        const jwt = await tokenAutorefresh.getJwt();
+        payloads.forEach(payload => {
+          payload.jwt = jwt;
+        });
+      }
 
-    if (payloads.length > 0) {
-      const jwt = await tokenAutorefresh.getJwt();
-      payloads.forEach(payload => {
-        payload.jwt = jwt;
-      });
+      return {}
     }
-
-    return {}
-  }
-});
-wsClient.use([{
-  async applyMiddleware(operationOptions: any, next: Function) {
-    // Attach a JWT to each request
-    try {
-      operationOptions['jwt'] = await tokenAutorefresh.getJwt();
-    } catch (err) {
-      reportError(err);
-      next(err);
-    } finally {
-      next();
+  });
+  wsClient.use([{
+    async applyMiddleware(operationOptions: any, next: Function) {
+      // Attach a JWT to each request
+      try {
+        operationOptions['jwt'] = await tokenAutorefresh.getJwt();
+      } catch (err) {
+        reportError(err);
+        next(err);
+      } finally {
+        next();
+      }
     }
-  }
-}]);
+  }]);
 
-const wsLink = new WebSocketLink(wsClient);
-(window as any).wsClient = wsClient;
-(window as any).wsLink = wsLink;
+  const wsLink = new WebSocketLink(wsClient);
+  (window as any).wsClient = wsClient;
+  (window as any).wsLink = wsLink;
 
-const link = errorLink.concat(authLink).split(
-  (operation) => {
-    // Only send subscriptions over websockets
-    const operationAST = getOperationAST(operation.query, operation.operationName);
-    return operationAST != null && operationAST.operation === 'subscription';
-  },
-  wsLink,
-  httpLink,
-);
+  link = errorLink.concat(authLink).split(
+    (operation) => {
+      // Only send subscriptions over websockets
+      const operationAST = getOperationAST(operation.query, operation.operationName);
+      return operationAST != null && operationAST.operation === 'subscription';
+    },
+    wsLink,
+    httpLink,
+  );
+} else {
+  link = httpLink;
+}
 
 const nonNormalizableTypes: any[] = ['User', 'DatasetUser', 'DatasetGroup', 'DatasetProject'];
 

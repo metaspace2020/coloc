@@ -1,6 +1,6 @@
 import { ElNotification } from 'element-ui/types/notification';
 import * as Raven from 'raven-js';
-import { every } from 'lodash-es';
+import every from 'lodash/every';
 
 let $notify: ElNotification;
 

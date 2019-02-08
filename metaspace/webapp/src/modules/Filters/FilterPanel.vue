@@ -57,7 +57,6 @@
    'simpleQuery',
    'simpleFilter',
    'metadataType',
-   'intThreshold',
  ];
 
  const filterComponents = {};

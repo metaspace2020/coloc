@@ -8,16 +8,16 @@ interface Dictionary<T> {
 }
 
 const FILTER_TO_URL: Record<FilterKey, string> = {
-  database: 'db',
+  database: 'database',
   group: 'grp',
   project: 'prj',
   submitter: 'subm',
   datasetIds: 'ds',
-  minMSM: 'msm',
-  compoundName: 'mol',
-  adduct: 'add',
+  minMSM: 'minMSM',
+  compoundName: 'compoundName',
+  adduct: 'adduct',
   mz: 'mz',
-  fdrLevel: 'fdr',
+  fdrLevel: 'fdrLevel',
   polarity: 'mode',
   organism: 'organism',
   organismPart: 'part',
@@ -29,8 +29,7 @@ const FILTER_TO_URL: Record<FilterKey, string> = {
   simpleQuery: 'q',
   simpleFilter: 'f',
   metadataType: 'mdtype',
-  user: 'user',
-  intThreshold: 'intthreshold'
+  user: 'user'
 };
 
 const URL_TO_FILTER = invert(FILTER_TO_URL) as Record<string, FilterKey>;
