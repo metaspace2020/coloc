@@ -123,7 +123,7 @@ const getSetPixels = (image) => {
   const numPixels = image.data.length / 2;
   let unset = 0;
   for (let i = 0; i < image.data.length; i += 2) {
-    if (image.data[i] === 0 || image.data[i+1] === 0) unset++;
+    if (image.data[i] === 0 && image.data[i+1] !== 0) unset++;
   }
   return (numPixels - unset) / numPixels;
 };
