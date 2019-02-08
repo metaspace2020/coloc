@@ -9,7 +9,7 @@ export interface MzImage {
 
 export const ICBlockAnnotationsQuery = gql`query AllAnnotations($filter: AnnotationFilter, $datasetFilter: DatasetFilter) {
     allAnnotations(filter: $filter, datasetFilter: $datasetFilter,
-                   offset: 0, limit: 100, orderBy: ORDER_BY_MZ, sortingOrder: ASCENDING) {
+                   offset: 0, limit: 500, orderBy: ORDER_BY_MZ, sortingOrder: ASCENDING) {
         id
         sumFormula
         adduct
