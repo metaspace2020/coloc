@@ -41,7 +41,7 @@
             Drag images from the <b>Unranked</b> area into rankings <b>{{base1 ? '1-10' : '0-9'}}</b> in order from most to least colocalized.
           </li>
           <li>
-            If multiple images have the same degree of colocalization, it's possible to put them at the same ranking.
+            If multiple images have the same degree of colocalization, put them in the same rank box.
           </li>
           <!--
           <li>
