@@ -51,7 +51,7 @@
             </el-button>
           </li>
           -->
-          <li>Click "Save & Continue" after finishing every set, or use the left & right arrow keys to move back and forward.</li>
+          <li>Click "Save & Continue" after finishing every set.</li>
           <li>If you aren't able to finish ranking, or if some images can't be ranked, make sure that the "Incomplete" checkbox is checked when you move to the next set.</li>
           <li v-if="!filterCompleted">Once finished, you can <a href="#" @click.prevent="toggleFilterCompleted">hide completed sets</a> to review any remaining incomplete sets.</li>
           <li v-else><a href="#" @click.prevent="toggleFilterCompleted">Show completed sets</a>.</li>
