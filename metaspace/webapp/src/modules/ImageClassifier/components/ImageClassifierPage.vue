@@ -183,11 +183,17 @@
       return this.$store.getters.gqlAnnotationFilter;
     }
 
-    get user(): string | null { return this.filter.user; }
+    get user(): string | null {
+      if(this.numannotations != 10)
+        return this.filter.user + '_' + this.numannotations;
+      else
+        return this.filter.user;
+    }
     get pix() { return parseFloat(this.query.pix) || 0; }
     get showfilters(): boolean { return !!this.query.showfilters; }
     get querySets(): string { return this.query.sets || ''; }
     get querySets2(): string { console.log(this.querySets); return this.querySets; }
+    get numannotations(): number { return parseInt(this.query.num, 10) || 10; }
     get routeSets(): RouteSet[] {
       const param = this.querySets2.split(';') as string[];
       const routeSets = flatMap(param, set => {
@@ -381,10 +387,10 @@
       const rng = new Prando(baseAnnotation.id);
       const anns = this.dsAnnotations[baseAnnotation.dataset.id];
 
-      if (this.user == null || anns.length < 12) return null;
+      if (this.user == null || anns.length < this.numannotations + 2) return null;
       const otherAnnotations: ICBlockAnnotation[] = [];
       let i = 0;
-      while (otherAnnotations.length < 10 && i++ < 1000) {
+      while (otherAnnotations.length < this.numannotations && i++ < 1000) {
         const ann = anns[rng.nextInt(0, anns.length-1)];
         if (ann.id !== baseAnnotation.id && !otherAnnotations.some(oa => oa.id === ann.id)) {
           otherAnnotations.push(ann);

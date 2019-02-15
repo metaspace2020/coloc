@@ -166,9 +166,9 @@
     @Watch('visible')
     async gradualRender() {
       if (this.visible) {
-        this.numToRender = 10;
+        this.numToRender = this.thisSet.otherAnnotations.length;
       } else if (this.preload) {
-        while(this.numToRender < 10) {
+        while(this.numToRender < this.thisSet.otherAnnotations.length) {
           await Vue.nextTick();
           await new Promise(resolve => setTimeout(resolve, 100));
           this.numToRender++;
