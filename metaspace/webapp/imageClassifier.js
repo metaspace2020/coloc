@@ -150,6 +150,7 @@ const configureImageClassifier = async (app) => {
     let datasetData = await knex('datasetCache').where({datasetId, filter: normalizedFilter}).first();
     if (datasetData == null) {
       // Get annotations
+      console.log(`getDatasetData(${datasetId}) getting annotations...`);
       let {data: {allAnnotations: annotations}} = await apolloClient.query({
         query: ICBlockAnnotationsQuery,
         variables: {
@@ -158,10 +159,13 @@ const configureImageClassifier = async (app) => {
         }
       });
       annotations = shuffle(_.cloneDeep(annotations));
+      console.log(`getDatasetData(${datasetId}) getting images...`);
       await pooledExecutePromises(annotations.map(ann => async () => {
         const image = await getImage(config.imageStorage + ann.isotopeImages[0].url);
         ann.pixelFillRatio = getSetPixels(image);
       }));
+      console.log(`getDatasetData(${datasetId}) found ${annotations.length} annotations, `
+      + [0.1, 0.2].map(ratio => annotations.filter(a => a.pixelFillRatio < ratio).length + ' at ' + ratio.toFixed(2)).join(', '));
       // Construct annotationSetPixels in order so that shuffle is preserved
       const annotationSetPixels = _.fromPairs(annotations.map(ann => [ann.id, ann.pixelFillRatio || 0]));
       datasetData = {

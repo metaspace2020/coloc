@@ -9,8 +9,13 @@
         <div style="background-color: #FFCCCC; cursor: pointer;flex: 0 1 200px" @click="goBack()">&lsaquo; Save & Go Back</div>
         <div v-if="currentSetIdx < filteredRouteSets.length" :title="currentSet && currentSet.id">
           {{ currentSetIdx+1 }} out of {{ filteredRouteSets.length }}
-          <span style="white-space: nowrap">({{ currentSet && currentSet.datasetId }}:{{ routeSets[currentSetIdx].setIdx }},</span>
-          <span style="white-space: nowrap">{{ currentSet && (currentSet.baseSf + currentSet.baseAdduct) }})</span>
+          <span v-if="currentSet != null">
+            <span style="white-space: nowrap">({{ currentSet && currentSet.datasetId }}:{{ routeSets[currentSetIdx].setIdx }},</span>
+            <span style="white-space: nowrap">{{ currentSet && (currentSet.baseSf + currentSet.baseAdduct) }})</span>
+          </span>
+          <span v-else>
+            <span style="white-space: nowrap">({{ routeSets[currentSetIdx].datasetId }}:{{ routeSets[currentSetIdx].setIdx }})</span>
+          </span>
         </div>
         <div v-else>FINISHED</div>
         <div v-if="currentSetIdx < filteredRouteSets.length" style="flex: 0 1 120px">
@@ -28,7 +33,7 @@
       <image-classifier-block
         v-if="!loading"
         v-for="(cs, setIdx) in filteredColocSets"
-        :key="cs.baseAnnotationId"
+        :key="cs && cs.baseAnnotationId || setIdx"
         :thisSet="cs"
         :visible="setIdx === currentSetIdx"
         :preload="Math.abs(setIdx - currentSetIdx) < 2"
@@ -83,7 +88,7 @@
     filter,
     flatMap,
     forEach,
-    fromPairs, groupBy,
+    fromPairs, get, groupBy,
     isEqual,
     keyBy,
     range,
@@ -194,7 +199,7 @@
     get querySets(): string { return this.query.sets || ''; }
     get querySets2(): string { console.log(this.querySets); return this.querySets; }
     get numannotations(): number { return parseInt(this.query.num, 10) || 10; }
-    get routeSets(): RouteSet[] {
+    get routeSets(): (RouteSet | null)[] {
       const param = this.querySets2.split(';') as string[];
       const routeSets = flatMap(param, set => {
         const [datasetId, setIdxs] = set.split(':');
@@ -210,20 +215,25 @@
       });
       const b = Object.values(groupBy(routeSets, 'datasetId'));
       console.log({b, zip: zip(...b)})
-      const c = filter(flatten(flatten(zip(...b)) as any));
+      const c = flatten(flatten(zip(...b)) as any);
       // Interleave datasets
-      return c.map((set, globalIdx) => ({ ...set, globalIdx })) as any as RouteSet[];
+      return c.map((set, globalIdx) => (set && { ...set, globalIdx })) as any as RouteSet[];
     }
-    get filteredRouteSets(): RouteSet[] {
+    get filteredRouteSets(): (RouteSet | null)[] {
       return this.routeSets
-        .filter(({datasetId, setIdx}) => {
-          const ds = this.dsAnnotations[datasetId];
-          const ann = ds && ds[setIdx];
-          return ann != null && (!this.filterCompleted || !this.lastCompletedAnnotationIds.includes(ann.id));
+        .filter((routeSet) => {
+          if (routeSet != null) {
+            const { datasetId, setIdx } = routeSet;
+            const ds = this.dsAnnotations[datasetId];
+            const ann = ds && ds[setIdx];
+            return !this.filterCompleted || (ann != null && !this.lastCompletedAnnotationIds.includes(ann.id));
+          } else {
+            return !this.filterCompleted;
+          }
         });
     }
-    get filteredColocSets(): ColocSet[] {
-      return this.filteredRouteSets.map(rs => this.getSetById(rs)!);
+    get filteredColocSets(): (ColocSet | null)[] {
+      return this.filteredRouteSets.map(rs => rs && this.getSetFromRouteSet(rs));
     }
     get currentSet() {
       return this.getSet(this.currentSetIdx);
@@ -241,10 +251,12 @@
       }
     }
     getSet(setIdx: number) {
-      return this.getSetById(this.filteredRouteSets[setIdx]);
+      const routeSet = this.filteredRouteSets[setIdx];
+      return routeSet && this.getSetFromRouteSet(routeSet);
     }
-    getSetById(routeSet: RouteSet): ColocSet | null {
-      const annotation = this.dsAnnotations[routeSet.datasetId][routeSet.setIdx];
+    getSetFromRouteSet(routeSet: RouteSet): ColocSet | null {
+      // const annotation = this.dsAnnotations[routeSet.datasetId][routeSet.setIdx];
+      const annotation = get(this.dsAnnotations, [routeSet.datasetId, routeSet.setIdx]) as ICBlockAnnotation | undefined;
       if (annotation != null) {
         const annotationId = annotation.id;
         if (this.clientSets[annotationId] == null) {
@@ -300,7 +312,7 @@
       const ignoredPromise = this.save();
       if (!this.filterCompleted) {
         this.lastCompletedAnnotationIds = this.routeSets
-          .map((rs) => this.getSetById(rs))
+          .map((rs) => rs && this.getSetFromRouteSet(rs))
           .filter(set => set != null && !this.isSetIncomplete(set))
           .map(set => set!.baseAnnotationId);
       }
@@ -326,7 +338,7 @@
 
     async save() {
       const setIdx = this.currentSetIdx;
-      if (setIdx === this.filteredRouteSets.length) return;
+      if (setIdx === this.filteredRouteSets.length || this.currentSet == null) return;
       const currentSet = this.currentSet!;
       const annotationId = currentSet.baseAnnotationId;
 
@@ -355,7 +367,7 @@
     @Watch('routeSets')
     @Watch('user')
     async loadSets() {
-      const datasetIds = uniq(this.routeSets.map(rs => rs.datasetId));
+      const datasetIds = uniq(this.routeSets.map(rs => rs && rs.datasetId).filter(id => id));
       console.log(this.routeSets)
       const user = this.user;
 

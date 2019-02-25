@@ -1,5 +1,5 @@
 <template>
-  <div v-if="numToRender > 0" class="block">
+  <div v-if="numToRender > 0 && thisSet != null" class="block">
     <div style="display:flex;">
       <div class="referenceImageContainer">
         <div class="referenceImage">
@@ -88,6 +88,9 @@
       </draggable>
     </div>
   </div>
+  <div v-else-if="thisSet == null" class="block" style="display: flex; height: 400px; align-items: center; justify-content: center;">
+    No Data
+  </div>
 </template>
 <script lang="ts">
   import Vue from 'vue';
@@ -109,7 +112,7 @@
     @Prop({ default: 'Viridis' })
     colormap!: string;
     @Prop()
-    thisSet!: ColocSet;
+    thisSet!: ColocSet | null;
     @Prop({ default: true })
     visible!: boolean;
     @Prop({ default: false })
@@ -145,7 +148,7 @@
     syncRanking() {
       console.log('syncRanking');
       if (this.thisSet != null) {
-        this.ranking = this.rangeTen.map(i => this.thisSet.otherAnnotations.filter(a => a.rank === i));
+        this.ranking = this.rangeTen.map(i => this.thisSet!.otherAnnotations.filter(a => a.rank === i));
         this.unranked = this.thisSet.otherAnnotations.filter(a => !(this.rangeTen as any).includes(a.rank));
       } else {
         this.ranking = this.rangeTen.map(i => []);
@@ -165,10 +168,11 @@
     @Watch('preload')
     @Watch('visible')
     async gradualRender() {
+      const len = this.thisSet != null ? this.thisSet.otherAnnotations.length : 0;
       if (this.visible) {
-        this.numToRender = this.thisSet.otherAnnotations.length;
+        this.numToRender = len;
       } else if (this.preload) {
-        while(this.numToRender < this.thisSet.otherAnnotations.length) {
+        while(this.numToRender < len) {
           await Vue.nextTick();
           await new Promise(resolve => setTimeout(resolve, 100));
           this.numToRender++;

@@ -56,6 +56,9 @@ Vue.use(VueAnalytics, {
 
 Vue.config.devtools = process.env.NODE_ENV === 'development';
 Vue.config.performance = process.env.NODE_ENV === 'development';
+Vue.config.errorHandler = (err: Error) => {
+  const ignored = app.$alert(err.message, 'Error')
+};
 
 const app = new Vue({
   el: '#app',
