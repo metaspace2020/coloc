@@ -215,7 +215,7 @@
       });
       const b = Object.values(groupBy(routeSets, 'datasetId'));
       console.log({b, zip: zip(...b)})
-      const c = flatten(flatten(zip(...b)) as any);
+      const c = flatten(flatten(zip(...b)) as any).filter(s => s != null);
       // Interleave datasets
       return c.map((set, globalIdx) => (set && { ...set, globalIdx })) as any as RouteSet[];
     }
