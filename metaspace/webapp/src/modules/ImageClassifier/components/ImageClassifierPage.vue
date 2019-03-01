@@ -82,17 +82,16 @@
   import ImageClassifierBlock from './ImageClassifierBlock.vue';
   import * as config from '../../../clientConfig-coloc.json';
   import {
-    castArray,
     cloneDeep,
-    debounce,
-    filter,
     flatMap,
-    forEach,
-    fromPairs, get, groupBy,
+    get,
+    groupBy,
     isEqual,
     keyBy,
     range,
-    uniq, zip,
+    remove,
+    uniq,
+    zip,
   } from 'lodash-es';
   import {quantile} from 'simple-statistics';
   import Prando from 'prando';
@@ -213,6 +212,9 @@
         });
         return allIdxs.map(setIdx => ({ datasetId, setIdx }));
       });
+      // Remove duplicates
+      remove(routeSets, ({datasetId, setIdx}, idx) => routeSets.findIndex(rs => rs.datasetId === datasetId && rs.setIdx === setIdx) !== idx);
+
       const b = Object.values(groupBy(routeSets, 'datasetId'));
       console.log({b, zip: zip(...b)})
       const c = flatten(flatten(zip(...b)) as any).filter(s => s != null);
