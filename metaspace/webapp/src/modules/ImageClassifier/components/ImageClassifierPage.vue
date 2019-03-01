@@ -43,10 +43,13 @@
         <ul slot="intro">
           <li>
             <!--Drag and drop images {{base1 ? '1-10' : '0-9'}} in order from most to least colocalized to the reference image.-->
-            Drag images from the <b>Unranked</b> area into rankings <b>{{base1 ? '1-10' : '0-9'}}</b> in order from most to least colocalized.
+            Drag co-localized images from the <b>Unranked</b> area into boxes <b>{{base1 ? '1-10' : '0-9'}}</b>, order by co-localization
           </li>
           <li>
-            If multiple images have the same degree of colocalization, put them in the same rank box.
+            If multiple images have the same degree of co-localization, put them in the same box
+          </li>
+          <li>
+            Leave not co-localized images in the Unranked  area
           </li>
           <!--
           <li>
@@ -56,8 +59,8 @@
             </el-button>
           </li>
           -->
-          <li>Click "Save & Continue" after finishing every set.</li>
-          <li>If you aren't able to finish ranking, or if some images can't be ranked, make sure that the "Incomplete" checkbox is checked when you move to the next set.</li>
+          <li style="margin-top: 20px">Click "Save & Continue" after finishing every set.</li>
+          <li>If you aren’t able to finish ranking, make sure that the "Incomplete" checkbox is checked when you move to the next set.</li>
           <li v-if="!filterCompleted">Once finished, you can <a href="#" @click.prevent="toggleFilterCompleted">hide completed sets</a> to review any remaining incomplete sets.</li>
           <li v-else><a href="#" @click.prevent="toggleFilterCompleted">Show completed sets</a>.</li>
         </ul>
