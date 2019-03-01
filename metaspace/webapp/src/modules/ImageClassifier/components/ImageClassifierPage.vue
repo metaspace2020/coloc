@@ -280,7 +280,7 @@
     isSetIncomplete(set: ColocSet) {
       return set.isIncomplete != null
         ? !!set.isIncomplete
-        : !set.otherAnnotations.every(a => a.rank != null);
+        : !set.otherAnnotations.some(a => a.rank != null);
     }
 
     // handleKeyDown(event: KeyboardEvent) {
