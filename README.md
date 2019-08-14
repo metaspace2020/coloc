@@ -1,12 +1,13 @@
 # Measuring co-localization of ion images
 
-This repository is devoted to a computational project on measuring co-localization of images in imaging mass spectrometry data. The project is carried out by the [Alexandrov team](https://www.embl.de/research/units/scb/alexandrov/) at EMBL Heidelberg. We used public data from [METASPACE](http://metaspace2020.eu) to create a gold standard set of ranked ion image pairs, as well as developed and evaluated several measures of co-localization of ion images.
+This repository is devoted to a project on measuring co-localization of mass spectrometry images. The project is carried out by the [Alexandrov team](https://www.embl.de/research/units/scb/alexandrov/) at EMBL Heidelberg. We created a webapp for ranking pairs of ion images, engaged external experts to rank images from their public data from [METASPACE](http://metaspace2020.eu), consolidated the results into a gold standard set of ranked pairs of ion images, and, finally, developed and evaluated various measures of co-localization.
 
 Team:
 
 - [Katja Ovchinnikova](http://ovchinnikova.me/): pixel-based co-localization method development, gold standard preparation
 - Alexander Rakhlin: deep learning based co-localization method development
-- [Lachlan Stuart](https://github.com/LachlanStuart): development of the RankColoc web app
+- [Lachlan Stuart](https://github.com/LachlanStuart): development and implementation of the RankColoc web app
+- Sergey Nikolenko: PI for the deep learning work
 - [Theodore Alexandrov](https://www.embl.de/research/units/scb/alexandrov/members/index.php?s_personId=CP-60020464): supervision, gold standard preparation
 
 ## Creating gold standard ion images
@@ -17,9 +18,6 @@ We used public datasets from [METASPACE](http://metaspace2020.eu), a community-p
 
 RankColoc was rapidly prototyped using the [METASPACE codebase](https://github.com/metaspace2020/metaspace/) as a foundation,
 allowing its back-end, image display and ranking to be reused.
-The RankColoc-specific changes can be found [in this commit range](???).
-
-It can be run by [starting the METASPACE webapp](???).
 
 ## Data
 
