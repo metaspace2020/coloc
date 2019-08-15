@@ -34,7 +34,7 @@ The colocalization measures implementations are available [in this commit range]
 
 ### Ion intensity-based measures
 
-Ion intensity-based measures are available in the jupyther notebook `ion_intensity_coloc_measures`.
+Ion intensity-based measures are available in the jupyter notebook `ion_intensity_coloc_measures`.
 
 ## Future steps
 
