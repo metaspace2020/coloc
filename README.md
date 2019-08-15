@@ -28,6 +28,14 @@ The ion images are available under `gs_imgs1` and `gs_imgs2` file names. To join
 
 The initial expert rankings can be found in `rankings.csv`, the filtered gold standard with average rankings is in `coloc_gs.csv`.
 
+## Colocalization measures
+
+The colocalization measures implementations are available [in this commit range](https://github.com/metaspace2020/offsample/coloc/measures).
+
+### Ion intensity-based measures
+
+Ion intensity-based measures are available in the jupyther notebook `ion_intensity_coloc_measures`.
+
 ## Future steps
 
 We are planning to integrate the best methods into [https://metaspace2020.eu](https://metaspace2020.eu).
