@@ -17,7 +17,8 @@ Team:
 We used public datasets from [METASPACE](http://metaspace2020.eu), a community-populated knowledge base of metabolite images. Please see the section Acknowledgements acknowledging contributors of the used data.
 
 RankColoc was rapidly prototyped using the [METASPACE codebase](https://github.com/metaspace2020/metaspace/) as a foundation,
-allowing its back-end, image display and ranking to be reused.
+allowing its back-end, image display and ranking to be reused. The RankColoc-specific changes can be found 
+[in this commit range](https://github.com/metaspace2020/coloc/compare/2d316a9049c561e5f5b7a0deded05930a435dc14...67f8fa10e5aa1f7a1052c4adaae997a489b9ce52). 
 
 ## Data
 
