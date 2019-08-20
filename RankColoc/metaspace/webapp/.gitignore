@@ -1,0 +1,21 @@
+clientConfig.json
+clientConfig-coloc.json
+*.sqlite
+
+# Dereferenced metadata files
+/src/assets/*.json
+/src/assets/metadataMapping.js
+
+# Copy of graphql schema for tests
+/tests/utils/graphql-schema.json
+
+# Compiled output
+stats.json
+
+# Passwords and other sensitive data
+conf.js
+src/clientConfig.json
+src/clientConfig-coloc.json
+
+# Screenshots taken by testcafe
+tests/e2e/screenshots

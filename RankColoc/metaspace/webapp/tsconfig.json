@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "target": "es5",
+    "strict": true,
+    "sourceMap": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "lib": ["ES2015", "ESNext", "DOM", "ScriptHost"],
+    "module": "CommonJS",
+    "moduleResolution": "node"
+  }
+}

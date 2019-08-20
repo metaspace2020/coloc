@@ -1,0 +1,24 @@
+{
+  "graphqlUrl": null,
+  "wsGraphqlUrl": null,
+  "manualSortUrl": null,
+
+  "google_client_id": "{{ sm_webapp_google_client_id }}",
+
+  "fineUploader": {
+    "aws": {
+      "access_key_id": "{{ sm_webapp_aws_access_key_id }}",
+      "region": "{{ sm_webapp_aws_region }}",
+      "s3_bucket": "{{ sm_webapp_s3_bucket }}",
+      "s3_signature_endpoint": "/upload/s3/sign",
+      "s3_signature_version": 2
+    },
+    "storage": "{{ sm_webapp_upload_destination }}"
+  },
+
+  "ravenDsn": "{{ sm_webapp_sentry_dsn }}",
+
+  "metadataTypes": {{ sm_webapp_metadata_types | to_json }},
+
+  "features": {{ sm_webapp_features | to_json }}
+}

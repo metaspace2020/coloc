@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "https://raw.githubusercontent.com/metaspace2020/metadata/master/ims.json",
+  "title": "METASPACE metadata for imaging mass spectrometry",
+  "description": "Metadata for imaging mass spectrometry data within the METASPACE knowledge base",
+  "type": "object",
+  "properties": {
+    "Data_Type": {
+      "enum":["Imaging MS"]
+    },
+    "Sample_Preparation": {
+      "description": "How the sample was prepared for imaging mass spectrometry",
+      "type": "object",
+      "required": ["MALDI_Matrix", "MALDI_Matrix_Application"],
+      "properties": {
+        "MALDI_Matrix": {
+          "description": "MALDI matrix, if used",
+          "type": "string",
+          "minLength": 1,
+          "default": "none"
+        },
+        "MALDI_Matrix_Application": {
+          "description": "Method of application, if used",
+          "type": "string",
+          "minLength": 1,
+          "default": "none"
+        }, 
+        "Solvent": {
+          "description": "Solvent used e.g. for DESI or MALDI matrix",
+          "type": "string",
+          "minLength": 1,
+          "default": "none"
+        }
+      }
+    },
+    "MS_Analysis": {
+      "type": "object",
+      "description": "Mass spectrometry settings",
+      "required": ["Pixel_Size"],
+      "properties": {
+        "Pixel_Size": {
+          "type": "object",
+          "title": "Pixel size in μm",
+          "smEditorType": "pixelSize",
+          "required": ["Xaxis", "Yaxis"],
+          "properties": {
+            "Xaxis": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 1000
+            },
+            "Yaxis": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 1000
+            }
+          }
+        }
+      }
+    }
+  }
+}
