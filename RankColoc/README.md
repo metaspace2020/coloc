@@ -1,14 +1,14 @@
 # RankColoc
 
 RankColoc was rapidly prototyped using the [METASPACE codebase](https://github.com/metaspace2020/metaspace/) as a foundation,
-allowing its back-end, image display and ranking to be reused. This directory contains a stripped-down fork of METASPACE
-including only the components necessary to run RankColoc. The RankColoc-specific changes can be found 
+allowing its back-end, image display and ranking to be reused. This directory contains a stripped-down fork 
+of METASPACE's "webapp" component, on which RankColoc was based. The RankColoc-specific changes can be found 
 [in this commit range](https://github.com/metaspace2020/coloc/compare/2d316a9049c561e5f5b7a0deded05930a435dc14...67f8fa10e5aa1f7a1052c4adaae997a489b9ce52).
 
 ## Installation
 
 * Clone the repository
-* Enter the `RankColoc/webapp` with a command prompt
+* Enter the `RankColoc/webapp` directory with a command prompt
 * Run `yarn install`
 * Customize `conf.js` to change the port if needed
 * Customize `src/clientConfig-coloc.json` to change the external host name & port for the local server if needed
