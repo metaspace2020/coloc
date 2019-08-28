@@ -31,11 +31,11 @@ The initial expert rankings can be found in `rankings.csv`, the filtered gold st
 
 ## Colocalization measures
 
-The colocalization measures implementations are available [in this commit range](https://github.com/metaspace2020/offsample/coloc/tree/master/measures).
+The colocalization measures implementations are available [in this commit range](https://github.com/metaspace2020/coloc/tree/master/measures).
 
 ### Measures requiring no learning
 
-Measures requiring no learning are available in the jupyter notebook `ion_intensity_coloc_measures.ipynb` [in this commit range](https://github.com/metaspace2020/offsample/coloc/tree/master/measures/ion_intensity_coloc_measures.ipynb).
+Measures requiring no learning are available in the jupyter notebook `ion_intensity_coloc_measures.ipynb` [in this commit range](https://github.com/metaspace2020/coloc/tree/master/measures/ion_intensity_coloc_measures.ipynb).
 ## Future steps
 
 We are planning to integrate the best methods into [https://metaspace2020.eu](https://metaspace2020.eu).
