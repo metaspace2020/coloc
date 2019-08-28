@@ -24,18 +24,18 @@ allowing its back-end, image display and ranking to be reused. The RankColoc-spe
 
 ### Gold standard
 
-The gold standard is available [in this commit range](https://github.com/metaspace2020/offsample/coloc/GS).
+The gold standard is available [in this commit range](https://github.com/metaspace2020/coloc/tree/master/GS).
 The ion images are available under `gs_imgs1` and `gs_imgs2` file names. To join both files into one arhive run `cat gs_imgs* > gs_imgs.tar.gz`
 
 The initial expert rankings can be found in `rankings.csv`, the filtered gold standard with average rankings is in `coloc_gs.csv`.
 
 ## Colocalization measures
 
-The colocalization measures implementations are available [in this commit range](https://github.com/metaspace2020/offsample/coloc/measures).
+The colocalization measures implementations are available [in this commit range](https://github.com/metaspace2020/offsample/coloc/tree/master/measures).
 
-### Ion intensity-based measures
+### Measures requiring no learning
 
-Ion intensity-based measures are available in the jupyter notebook `ion_intensity_coloc_measures`.
+Measures requiring no learning are available in the jupyter notebook `no_learning_measures` [in this commit range](https://github.com/metaspace2020/offsample/coloc/tree/master/measures/no_learning_measures.ipy
 
 ## Future steps
 
