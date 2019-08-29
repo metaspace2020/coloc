@@ -37,6 +37,10 @@ The colocalization measures implementations are available [here](https://github.
 
 Measures requiring no learning are available in the jupyter notebook `ion_intensity_coloc_measures.ipynb` [here](https://github.com/metaspace2020/coloc/tree/master/measures/ion_intensity_coloc_measures.ipynb).
 
+### Measures based on deep learning
+
+Measures based on deep learning are available [here](https://github.com/metaspace2020/coloc/tree/master/measures/DLcoloc).
+
 ## Future steps
 
 We are planning to integrate the best methods into [https://metaspace2020.eu](https://metaspace2020.eu).
