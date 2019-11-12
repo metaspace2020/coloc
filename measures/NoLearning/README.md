@@ -2,13 +2,14 @@
 
 ## Requirements
 
-* python jupyter
+* python 3.x
+* jupyter
 * gensim package
 * sklearn, scipy packages
 
 ## Setup
 
-* clore repository
+* clone repository
 * set up local paths: `tmp_dir` and `img_dir` (path to gold standard images)
 * (optional) set different values for parameters: `quan, tfidf, log, sqrt, hotspot, med_win`
 
