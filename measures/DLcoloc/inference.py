@@ -1,43 +1,44 @@
-from colocalization.datagen import Iterator
-from colocalization.models import xception
+from datagen import Iterator
+from models import xception
 import numpy as np
-from colocalization.stats import accuracy
+from stats import accuracy
 import pandas as pd
 import re
 from pathlib import Path
-from colocalization.utils import train_test_split
+from utils import train_test_split
 from keras import backend as K
 import matplotlib.pyplot as plt
+import os
+import argparse
 
 
-DATA_DIR = Path('Data')
-MODEL_DIR = Path('model/pi_model')
-DATA_DF = pd.read_csv(DATA_DIR / 'coloc_gs.csv')
-PREDS_DF = 'prediction/preds_pi.csv'
+CURRENT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+PREDS_DIR = Path(CURRENT_DIR / 'prediction')
+Path.mkdir(PREDS_DIR, exist_ok=True)
+
+DATA_DF = pd.read_csv(CURRENT_DIR / '../../GS/coloc_gs.csv')
 COLUMNS = DATA_DF.columns
 BATCH_SIZE = 16
-WEIGHTS = [
-    # 'checkpoint.xception.sz128.fold1-5.78-0.04.hdf5',
-    # 'checkpoint.xception.sz128.fold2-5.04-0.05.hdf5',
-    # 'checkpoint.xception.sz128.fold3-5.18-0.05.hdf5',
-    # 'checkpoint.xception.sz128.fold4-5.08-0.06.hdf5',
-    # 'checkpoint.xception.sz128.fold5-5.09-0.06.hdf5',
-
-    'checkpoint.pi_model.sz128.fold1-5.02-0.04.hdf5',   # 80.57
-    'checkpoint.pi_model.sz128.fold2-5.01-0.04.hdf5',   # 80.65
-    'checkpoint.pi_model.sz128.fold3-5.01-0.04.hdf5',   # 0.7829
-    'checkpoint.pi_model.sz128.fold4-5.94-0.07.hdf5',   # 0.6048
-    'checkpoint.pi_model.sz128.fold5-5.03-0.05.hdf5',   # 0.7882
-]
-
 MODEL2CLASS = {'xception': xception,
                'pi_model': xception}
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('data_dir', default=None, help='path to gold standard images')
+    parser.add_argument('model_type',
+                        default=None,
+                        choices=['base', 'pi'],
+                        help='model type')
+    args = parser.parse_args()
+    DATA_DIR = Path(args.data_dir)
+    MODEL_TYPE = args.model_type
+    MODEL_DIR = Path(CURRENT_DIR / 'models/{}_model'.format(MODEL_TYPE))
+    PREDS_DF = PREDS_DIR / 'preds_{}.csv'.format(MODEL_TYPE)
+    WEIGHTS = list(MODEL_DIR.glob('*.hdf5'))
 
     for weights_path in WEIGHTS:
-        parse = re.match('checkpoint.(.+).sz([0-9]+).fold([0-9]+)-([0-9]+).', weights_path)
+        parse = re.match('checkpoint.(.+).sz([0-9]+).fold([0-9]+)-([0-9]+).', weights_path.parts[-1])
         model_name = parse[1]
         crop_sz = int(parse[2])
         test_fold = int(parse[3])
@@ -55,7 +56,7 @@ if __name__ == '__main__':
 
         model_class = MODEL2CLASS[model_name]
         K.clear_session()
-        model = model_class(weights=MODEL_DIR / weights_path)
+        model = model_class(weights=weights_path)
         y_pred = model.predict(x).flatten()
 
         DATA_DF.loc[test_df.index, 'pred'] = y_pred * 10
