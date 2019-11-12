@@ -1,37 +1,42 @@
-from colocalization.datagen import Iterator
-from colocalization.models import mu_model
+from datagen import Iterator
+from models import mu_model
 import numpy as np
-from colocalization.stats import accuracy
+from stats import accuracy
 from scipy.stats import spearmanr, pearsonr
 import pandas as pd
 import re
 from pathlib import Path
-from colocalization.utils import train_test_split
+from utils import train_test_split
 from keras import backend as K
 import matplotlib.pyplot as plt
+import os
+import argparse
 
 
-DATA_DIR = Path('Data')
-MODEL_DIR = Path('model/mu_model')
-DATA_DF = pd.read_csv(DATA_DIR / 'coloc_gs.csv')
-PREDS_DF = 'prediction/preds_mu.csv'
+CURRENT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+PREDS_DIR = Path(CURRENT_DIR / 'prediction')
+Path.mkdir(PREDS_DIR, exist_ok=True)
+
+DATA_DF = pd.read_csv(CURRENT_DIR / '../../GS/coloc_gs.csv')
 COLUMNS = DATA_DF.columns
 BATCH_SIZE = 16
-WEIGHTS = [
-    'checkpoint.mu_model.embd512.sz128.fold1-5.02-0.06.hdf5',
-    'checkpoint.mu_model.embd512.sz128.fold2-5.07-0.06.hdf5',
-    'checkpoint.mu_model.embd512.sz128.fold3-5.26-0.07.hdf5',
-    'checkpoint.mu_model.embd512.sz128.fold4-5.07-0.06.hdf5',
-    'checkpoint.mu_model.embd512.sz128.fold5-5.206-0.06.hdf5'
-]
 
 MODEL2CLASS = {'mu_model': mu_model}
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('data_dir',
+                        default=None)
+    args = parser.parse_args()
+    DATA_DIR = Path(args.data_dir)
+    MODEL_TYPE = 'mu'
+    MODEL_DIR = Path(CURRENT_DIR / 'models/{}_model'.format(MODEL_TYPE))
+    PREDS_DF = PREDS_DIR / 'preds_{}.csv'.format(MODEL_TYPE)
+    WEIGHTS = list(MODEL_DIR.glob('*.hdf5'))
 
     for weights_path in WEIGHTS:
-        parse = re.match('checkpoint.(.+).embd([0-9]+).sz([0-9]+).fold([0-9]+)-([0-9]+).', weights_path)
+        parse = re.match('checkpoint.(.+).embd([0-9]+).sz([0-9]+).fold([0-9]+)-([0-9]+).', weights_path.parts[-1])
         model_name = parse[1]
         embd_dim = int(parse[2])
         crop_sz = int(parse[3])

@@ -1,19 +1,23 @@
 import pandas as pd
 import numpy as np
-import re
 from scipy.stats import spearmanr, kendalltau, pearsonr
 import pickle
 from pathlib import Path
-from colocalization.utils import train_test_split
+from utils import train_test_split
 import lightgbm as lgb
-from colocalization.stats import accuracy
+from stats import accuracy
+import os
+import argparse
 
 
-FEATURE_DICT = Path('Data/features.ncomp20.naugs40.pkl')
-DATA_DF = pd.read_csv('Data/coloc_gs.csv')
-PREDS_DF_PATH = 'prediction/preds_gbt5.csv'
+CURRENT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+PREDS_DIR = Path(CURRENT_DIR / 'prediction')
+Path.mkdir(PREDS_DIR, exist_ok=True)
+
+DATA_DF = pd.read_csv(CURRENT_DIR / '../../GS/coloc_gs.csv')
+
 FOLDS = range(1, 6)
-N_FOLDS = 5
+N_FOLDS = len(FOLDS)
 
 # LightGBM
 LEARNING_RATE = 0.01
@@ -33,7 +37,7 @@ PARAM = {
 }
 
 
-def load_data(feature_dict, df, test_fold, n_folds):
+def load_data(feature_dict_path, df, test_fold, n_folds):
     def _comb_features(base_f, other_f):
         return np.concatenate([
             base_f,
@@ -44,7 +48,7 @@ def load_data(feature_dict, df, test_fold, n_folds):
             # [pearsonr(base_f, other_f)[0]],
         ])
 
-    def _get_features(_df):
+    def _get_features(_df, feature_dict):
         features = []
         y = []
         for _, row in _df.iterrows():
@@ -61,15 +65,10 @@ def load_data(feature_dict, df, test_fold, n_folds):
         return np.array(features), np.array(y)
 
     train_df, test_df = train_test_split(df, test_fold=test_fold, n_folds=n_folds)
-    with open(FEATURE_DICT, 'rb') as f:
+    with open(feature_dict_path, 'rb') as f:
         feature_dict = pickle.load(f)
 
-    # parse = re.match('features.ncomp([0-9]+).naugs([0-9]+)', FEATURE_DICT.stem)
-    # ncomp = int(parse[1])
-    # naugs = int(parse[2])
-    # feature_dict = {k: v.reshape(ncomp, naugs).mean(axis=-1) for k, v in feature_dict.items()}
-
-    return _get_features(train_df), _get_features(test_df), test_df.index
+    return _get_features(train_df, feature_dict), _get_features(test_df, feature_dict), test_df.index
 
 
 def train(x_train: np.array, y_train: np.array, x_val: np.array, y_val: np.array, save_path=None):
@@ -84,10 +83,20 @@ def train(x_train: np.array, y_train: np.array, x_val: np.array, y_val: np.array
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-features', default=None, required=False, help='path to unsupervised features')
+    args = parser.parse_args()
+    MODEL_TYPE = 'gbt'
+
+    MODEL_DIR = Path(CURRENT_DIR / 'models/unsupervised_model')
+    FEATURE_DICT_PATH = Path(args.features) if args.features else MODEL_DIR / 'features.ncomp20.naugs40.pkl'
+    PREDS_DF_PATH = PREDS_DIR / 'preds_{}.csv'.format(MODEL_TYPE)
+
     PREDS_DF = DATA_DF.copy()
     for fold in FOLDS:
         print(f'Fold {fold}/{len(FOLDS)}')
-        (train_features, train_y), (test_features, test_y), df_index = load_data(FEATURE_DICT, DATA_DF, fold, N_FOLDS)
+        (train_features, train_y), (test_features, test_y), df_index = load_data(FEATURE_DICT_PATH, DATA_DF,
+                                                                                 fold, N_FOLDS)
         assert len(train_features) + len(test_features) == len(DATA_DF)
 
         pred = train(train_features, train_y, test_features, test_y)

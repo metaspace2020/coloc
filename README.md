@@ -5,7 +5,7 @@ This repository is devoted to a project on measuring co-localization of mass spe
 Team:
 
 - [Katja Ovchinnikova](http://ovchinnikova.me/): pixel-based co-localization method development, gold standard preparation
-- Alexander Rakhlin: deep learning based co-localization method development
+- [Alexander Rakhlin](https://alexander-rakhlin.github.io): deep learning based co-localization method development
 - [Lachlan Stuart](https://github.com/LachlanStuart): development and implementation of the RankColoc web app
 - Sergey Nikolenko: PI for the deep learning work
 - [Theodore Alexandrov](https://www.embl.de/research/units/scb/alexandrov/members/index.php?s_personId=CP-60020464): supervision, gold standard preparation
