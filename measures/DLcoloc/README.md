@@ -20,7 +20,7 @@
 * for `mu` model run:  
     `python inference_mu.py <data path>`
 * for `unsupervised` model run:  
-    `train_unsupervised_model.py  <data path> [-dump_features]`  
+    `python train_unsupervised_model.py  <data path> [-dump_features]`  
    `-dump_features` argument is only required if you want to save features for later use with tree model. Not required as unsupervised features already provided as `features.ncomp20.naugs40.pkl`
 * for `gbt` model run:  
     `python train_tree_model.py [-features=<path to unsupervised features>]`  
