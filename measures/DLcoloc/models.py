@@ -17,22 +17,22 @@ import warnings
 
 
 class ModelCheckpoint(Callback):
-    """Save the models after every epoch.
+    """Save the model after every epoch.
 
     `filepath` can contain named formatting options,
     which will be filled the value of `epoch` and
     keys in `logs` (passed in `on_epoch_end`).
 
     For example: if `filepath` is `weights.{epoch:02d}-{val_loss:.2f}.hdf5`,
-    then the models checkpoints will be saved with the epoch number and
+    then the model checkpoints will be saved with the epoch number and
     the validation loss in the filename.
 
     # Arguments
-        filepath: string, path to save the models file.
+        filepath: string, path to save the model file.
         monitor: quantity to monitor.
         verbose: verbosity mode, 0 or 1.
         save_best_only: if `save_best_only=True`,
-            the latest best models according to
+            the latest best model according to
             the quantity monitored will not be overwritten.
         mode: one of {auto, min, max}.
             If `save_best_only=True`, the decision
@@ -42,9 +42,9 @@ class ModelCheckpoint(Callback):
             this should be `max`, for `val_loss` this should
             be `min`, etc. In `auto` mode, the direction is
             automatically inferred from the name of the monitored quantity.
-        save_weights_only: if True, then only the models's weights will be
-            saved (`models.save_weights(filepath)`), else the full models
-            is saved (`models.save(filepath)`).
+        save_weights_only: if True, then only the model's weights will be
+            saved (`model.save_weights(filepath)`), else the full model
+            is saved (`model.save(filepath)`).
         period: Interval (number of epochs) between checkpoints.
     """
 
@@ -90,13 +90,13 @@ class ModelCheckpoint(Callback):
             if self.save_best_only:
                 current = logs.get(self.monitor)
                 if current is None:
-                    warnings.warn('Can save best models only with %s available, '
+                    warnings.warn('Can save best model only with %s available, '
                                   'skipping.' % (self.monitor), RuntimeWarning)
                 else:
                     if self.monitor_op(current, self.best):
                         if self.verbose > 0:
                             print('\nEpoch %05d: %s improved from %0.5f to %0.5f,'
-                                  ' saving models to %s'
+                                  ' saving model to %s'
                                   % (epoch + 1, self.monitor, self.best,
                                      current, filepath))
                         self.best = current
@@ -110,7 +110,7 @@ class ModelCheckpoint(Callback):
                                   (epoch + 1, self.monitor, self.best))
             else:
                 if self.verbose > 0:
-                    print('\nEpoch %05d: saving models to %s' % (epoch + 1, filepath))
+                    print('\nEpoch %05d: saving model to %s' % (epoch + 1, filepath))
                 if self.save_weights_only:
                     self.model.get_layer(self.layer_to_save).save_weights(filepath, overwrite=True)
                 else:
@@ -172,7 +172,7 @@ def xception(input_channels=2, lr=1e-4, weights=None, optimizer='adam'):
 
 
 def pi_model(input_channels=2, lr=1e-4, weights=None, optimizer='adam', loss_weights=(0.5, 0.5)):
-    """ Pi-models. https://arxiv.org/pdf/1610.02242.pdf """
+    """ Pi-model. https://arxiv.org/pdf/1610.02242.pdf """
 
     if K.image_data_format() == 'channels_last':
         input_shape = (None, None, input_channels)
