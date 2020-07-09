@@ -9,8 +9,8 @@
 
 ## Setup
 
-* download pre-trained models and features from `https://dropmefiles.com/sjRSV`  
-* unzip `models.zip` in `measures/DLcoloc/models` preserving directory structure  
+* download pre-trained models and features from [here](https://oc.embl.de/index.php/s/M7sVyqehsJwTXcM)
+* unzip `models_coloc.zip` into `measures/DLcoloc/models` preserving directory structure  
 
 ## Run
 
