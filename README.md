@@ -2,6 +2,8 @@
 
 This repository is devoted to a project on measuring co-localization of mass spectrometry images. The project is carried out by the [Alexandrov team](https://www.embl.de/research/units/scb/alexandrov/) at EMBL Heidelberg. We created a webapp for ranking pairs of ion images, engaged external experts to rank images from their public data from [METASPACE](http://metaspace2020.eu), consolidated the results into a gold standard set of ranked pairs of ion images, and, finally, developed and evaluated various measures of co-localization.
 
+For more information, please see our recent paper [Ovchinnikova et al. (2020) Bioinformatics](https://doi.org/10.1093/bioinformatics/btaa085).
+
 Team:
 
 - [Katja Ovchinnikova](http://ovchinnikova.me/): pixel-based co-localization method development, gold standard preparation
